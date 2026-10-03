@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <rect width="1280" height="800" fill="#ffffff"/>
+  <rect x="0" y="0" width="1280" height="54" fill="#14315c"/>
+  <rect x="20" y="20" width="15" height="15" rx="3" fill="#58a6ff"/>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#ffffff"><text x="44" y="34">天平校验系统</text></g>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="13" fill="#c3d3ea">
+    <text x="200" y="34">待复核确认</text>
+    <text x="291" y="34">全部校验记录</text>
+    <text x="401" y="34" fill="#ffffff">模板与天平维护</text>
+    <rect x="401" y="41" width="91" height="2" fill="#58a6ff"/>
+  </g>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="12.5" fill="#d7e3f5">
+    <rect x="1052" y="14" width="148" height="26" rx="13" fill="none" stroke="#3b6099"/>
+    <text x="1126" y="31" text-anchor="middle">齐一 · 复核确认人员</text>
+    <text x="1215" y="31" fill="#c3d3ea">退出</text>
+  </g>
+  <rect x="0" y="54" width="186" height="746" fill="#f5f7fb"/>
+  <line x1="186" y1="54" x2="186" y2="800" stroke="#e3e8f0"/>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="13">
+    <text x="24" y="93" fill="#43536e">待复核确认</text>
+    <circle cx="158" cy="88" r="9" fill="#dc2626"/>
+    <text x="158" y="92" font-size="11.5" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="24" y="135" fill="#43536e">全部校验记录</text>
+    <rect x="10" y="152" width="166" height="32" rx="7" fill="#1b4f91"/>
+    <text x="24" y="173" fill="#ffffff" font-weight="700">模板与天平维护</text>
+  </g>
+
+  <g font-family="Microsoft YaHei, sans-serif">
+    <!-- 页面标题 + 子选项卡 -->
+    <text x="206" y="86" font-size="17" font-weight="700" fill="#14315c">天平清单管理</text>
+    <text x="330" y="86" font-size="12" fill="#64748b">共 5 台 · 化学室 2 / 物理室 2 / 生物室 1</text>
+    <g font-size="12.5">
+      <rect x="206" y="100" width="92" height="26" rx="6" fill="#1b4f91"/>
+      <text x="252" y="118" fill="#ffffff" text-anchor="middle" font-weight="700">天平清单</text>
+      <rect x="308" y="100" width="130" height="26" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="373" y="118" fill="#334155" text-anchor="middle">砝码与判定要求</text>
+      <rect x="448" y="100" width="110" height="26" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="503" y="118" fill="#334155" text-anchor="middle">校验记录模板</text>
+    </g>
+
+    <!-- 搜索与筛选 -->
+    <rect x="206" y="140" width="280" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="222" y="161" font-size="12" fill="#94a3b8">搜索编号 / 唯一号</text>
+    <rect x="496" y="140" width="118" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="512" y="161" font-size="12.5" fill="#334155">全部科室 ▾</text>
+    <rect x="624" y="140" width="118" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="640" y="161" font-size="12.5" fill="#334155">全部量程 ▾</text>
+    <rect x="752" y="140" width="68" height="32" rx="6" fill="#1b4f91"/>
+    <text x="786" y="161" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">查询</text>
+    <rect x="830" y="140" width="68" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="864" y="161" font-size="13" fill="#334155" text-anchor="middle">重置</text>
+    <rect x="1084" y="140" width="116" height="32" rx="6" fill="#1b4f91"/>
+    <text x="1142" y="161" font-size="12.5" fill="#ffffff" text-anchor="middle">+ 新增天平</text>
+
+    <!-- 列表 -->
+    <rect x="206" y="180" width="1054" height="28" fill="#f5f7fb"/>
+    <g font-size="12.5" font-weight="700" fill="#43536e">
+      <text x="224" y="199">编号</text><text x="290" y="199">唯一号</text><text x="400" y="199">科室</text>
+      <text x="478" y="199">量程</text><text x="572" y="199">精度</text><text x="664" y="199">校验频次</text>
+      <text x="736" y="199">砝码盒</text><text x="868" y="199">最近校验</text><text x="1096" y="199">操作</text>
+    </g>
+    <rect x="206" y="208" width="1054" height="40" fill="#fff8ec"/>
+    <g stroke="#eef2f7">
+      <line x1="206" y1="248" x2="1260" y2="248"/><line x1="206" y1="288" x2="1260" y2="288"/>
+      <line x1="206" y1="328" x2="1260" y2="328"/><line x1="206" y1="368" x2="1260" y2="368"/>
+    </g>
+    <g font-size="12" fill="#26303f">
+      <text x="224" y="229" font-weight="700" fill="#14315c">F001</text><text x="290" y="229">SJS2605002</text><text x="400" y="229">化学室</text><text x="478" y="229">220 g</text><text x="572" y="229">0.1 mg</text><text x="664" y="229">每天</text><text x="736" y="229">FM2512920</text><text x="868" y="229">2026-06-29</text>
+      <text x="224" y="269" font-weight="700" fill="#14315c">F002</text><text x="290" y="269">SJS2605003</text><text x="400" y="269">物理室</text><text x="478" y="269">120/40 g</text><text x="572" y="269">0.1/0.01 mg</text><text x="664" y="269">每天</text><text x="736" y="269">FM2512951</text><text x="868" y="269">2026-06-29</text>
+      <text x="224" y="309" font-weight="700" fill="#14315c">F003</text><text x="290" y="309">SJS2605004</text><text x="400" y="309">化学室</text><text x="478" y="309">220 g</text><text x="572" y="309">1 mg</text><text x="664" y="309">每周</text><text x="736" y="309">FM2513012</text><text x="868" y="309">2026-06-28</text>
+      <text x="224" y="349" font-weight="700" fill="#14315c">F004</text><text x="290" y="349">SJS2605011</text><text x="400" y="349">生物室</text><text x="478" y="349">3200 g</text><text x="572" y="349">10 mg</text><text x="664" y="349">每天</text><text x="736" y="349">FM2513220</text><text x="868" y="349">2026-06-27</text>
+      <text x="224" y="389" font-weight="700" fill="#14315c">F005</text><text x="290" y="389">SJS2605018</text><text x="400" y="389">物理室</text><text x="478" y="389">220 g</text><text x="572" y="389">0.1 mg</text><text x="664" y="389">每月</text><text x="736" y="389">FM2513310</text><text x="868" y="389">2026-06-25</text>
+    </g>
+    <g font-size="12">
+      <text x="1096" y="229" fill="#1b4f91">编辑</text><text x="1142" y="229" fill="#c92a2a">删除</text>
+      <text x="1096" y="269" fill="#1b4f91">编辑</text><text x="1142" y="269" fill="#c92a2a">删除</text>
+      <text x="1096" y="309" fill="#1b4f91">编辑</text><text x="1142" y="309" fill="#c92a2a">删除</text>
+      <text x="1096" y="349" fill="#1b4f91">编辑</text><text x="1142" y="349" fill="#c92a2a">删除</text>
+      <text x="1096" y="389" fill="#1b4f91">编辑</text><text x="1142" y="389" fill="#c92a2a">删除</text>
+    </g>
+
+    <!-- 底部说明 -->
+    <rect x="206" y="430" width="1054" height="44" rx="8" fill="#effaf3" stroke="#b7e6cd"/>
+    <text x="224" y="456" font-size="12" fill="#0f7a3d">✔ 天平清单由复核确认人员维护；删除天平前须确认其下无未归档校验记录，删除留痕、可由管理员恢复。</text>
+    <text x="224" y="474" font-size="11.5" fill="#0f7a3d">新增 / 修改天平信息后，天平编号、量程、精度将作为后续视频识别结果的比对基准。</text>
+  </g>
+</svg>

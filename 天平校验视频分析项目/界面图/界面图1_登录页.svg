@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14315c"/><stop offset="0.55" stop-color="#1b4f91"/><stop offset="1" stop-color="#2f7ec4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="800" fill="#ffffff"/>
+  <rect width="520" height="800" fill="url(#bg)"/>
+  <circle cx="500" cy="60" r="210" fill="#ffffff" opacity="0.05"/>
+  <circle cx="60" cy="760" r="170" fill="#ffffff" opacity="0.04"/>
+
+  <g font-family="Microsoft YaHei, sans-serif" text-anchor="start">
+    <text x="56" y="128" font-size="13" fill="#9dc2ef" letter-spacing="3.2">ELECTRONIC BALANCE VERIFICATION</text>
+    <text x="56" y="198" font-size="32" font-weight="700" fill="#ffffff" letter-spacing="1">天平校验</text>
+    <text x="56" y="246" font-size="32" font-weight="700" fill="#ffffff" letter-spacing="1">视频分析系统</text>
+    <g font-size="13.5" fill="#dbe8fa">
+      <text x="56" y="332">✔  手机录屏留证，校验过程可回溯</text>
+      <text x="56" y="376">✔  视频识别自动预填读数，人工核对确认</text>
+      <text x="56" y="420">✔  按 ±0.05% 规则逐示值自动判定合格与否</text>
+      <text x="56" y="464">✔  复核确认后归档，按天平台账导出 PDF</text>
+    </g>
+    <text x="56" y="742" font-size="12" fill="#86a9d8">南京市医学转化院人因工程研究院 · 内网部署 v1.0</text>
+  </g>
+
+  <g font-family="Microsoft YaHei, sans-serif">
+    <text x="700" y="292" font-size="20" font-weight="700" fill="#14315c">用户登录</text>
+    <text x="700" y="316" font-size="12" fill="#8792a4">账号由管理员分配，仅限内网访问</text>
+
+    <text x="700" y="362" font-size="12" fill="#64748b">用户名</text>
+    <rect x="700" y="372" width="392" height="34" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="714" y="394" font-size="13" fill="#334155">liyi</text>
+
+    <text x="700" y="436" font-size="12" fill="#64748b">密码</text>
+    <rect x="700" y="446" width="392" height="34" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="714" y="468" font-size="13" fill="#334155" letter-spacing="3">••••••••</text>
+
+    <text x="700" y="512" font-size="12" fill="#64748b">登录身份</text>
+    <rect x="700" y="522" width="124" height="38" rx="7" fill="#eaf2fd" stroke="#1b4f91"/>
+    <text x="762" y="546" font-size="12.5" font-weight="700" fill="#14315c" text-anchor="middle">检验人员</text>
+    <rect x="834" y="522" width="124" height="38" rx="7" fill="#ffffff" stroke="#dbe2ec"/>
+    <text x="896" y="546" font-size="12.5" fill="#64748b" text-anchor="middle">复核确认人员</text>
+    <rect x="968" y="522" width="124" height="38" rx="7" fill="#ffffff" stroke="#dbe2ec"/>
+    <text x="1030" y="546" font-size="12.5" fill="#64748b" text-anchor="middle">管理员</text>
+
+    <rect x="700" y="586" width="392" height="42" rx="6" fill="#1b4f91"/>
+    <text x="896" y="613" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="2">登 录</text>
+
+    <text x="896" y="654" font-size="11.5" fill="#94a3b8" text-anchor="middle">忘记密码请联系管理员重置 · 登录操作记入审计日志</text>
+  </g>
+</svg>

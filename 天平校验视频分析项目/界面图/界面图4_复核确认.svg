@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <rect width="1280" height="800" fill="#ffffff"/>
+  <rect x="0" y="0" width="1280" height="54" fill="#14315c"/>
+  <rect x="20" y="20" width="15" height="15" rx="3" fill="#58a6ff"/>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#ffffff"><text x="44" y="34">天平校验系统</text></g>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="13" fill="#c3d3ea">
+    <text x="200" y="34" fill="#ffffff">待复核确认</text>
+    <rect x="200" y="41" width="65" height="2" fill="#58a6ff"/>
+    <text x="291" y="34">全部校验记录</text>
+    <text x="401" y="34">模板与天平维护</text>
+  </g>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="12.5" fill="#d7e3f5">
+    <rect x="1052" y="14" width="148" height="26" rx="13" fill="none" stroke="#3b6099"/>
+    <text x="1126" y="31" text-anchor="middle">齐一 · 复核确认人员</text>
+    <text x="1215" y="31" fill="#c3d3ea">退出</text>
+  </g>
+  <rect x="0" y="54" width="186" height="746" fill="#f5f7fb"/>
+  <line x1="186" y1="54" x2="186" y2="800" stroke="#e3e8f0"/>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="13">
+    <rect x="10" y="72" width="166" height="32" rx="7" fill="#1b4f91"/>
+    <text x="24" y="93" fill="#ffffff" font-weight="700">待复核确认</text>
+    <circle cx="158" cy="88" r="9" fill="#dc2626"/>
+    <text x="158" y="92" font-size="11.5" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="24" y="135" fill="#43536e">全部校验记录</text>
+    <text x="24" y="173" fill="#43536e">模板与天平维护</text>
+  </g>
+
+  <g font-family="Microsoft YaHei, sans-serif">
+    <!-- 左侧：待复核列表 -->
+    <text x="206" y="94" font-size="15" font-weight="700" fill="#14315c">待复核确认</text>
+    <text x="288" y="94" font-size="12" fill="#64748b">3 条</text>
+    <rect x="524" y="76" width="62" height="24" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="555" y="93" font-size="12" fill="#334155" text-anchor="middle">刷新</text>
+
+    <rect x="206" y="106" width="380" height="28" fill="#f5f7fb"/>
+    <g font-size="12.5" font-weight="700" fill="#43536e">
+      <text x="220" y="125">天平编号</text><text x="292" y="125">校验日期</text><text x="376" y="125">校验人员</text><text x="458" y="125">判定</text>
+    </g>
+    <rect x="206" y="134" width="380" height="34" fill="#fff8ec"/>
+    <line x1="206" y1="168" x2="586" y2="168" stroke="#eef2f7"/>
+    <line x1="206" y1="202" x2="586" y2="202" stroke="#eef2f7"/>
+    <line x1="206" y1="236" x2="586" y2="236" stroke="#eef2f7"/>
+    <g font-size="12.5" fill="#26303f">
+      <text x="220" y="156" font-weight="700" fill="#14315c">F001</text><text x="292" y="156">2026-06-29</text><text x="376" y="156">李一</text>
+      <text x="220" y="190" font-weight="700" fill="#14315c">F002</text><text x="292" y="190">2026-06-29</text><text x="376" y="190">李二</text>
+      <text x="220" y="224" font-weight="700" fill="#14315c">F003</text><text x="292" y="224">2026-06-28</text><text x="376" y="224">李一</text>
+    </g>
+    <rect x="458" y="143" width="52" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="484" y="156" font-size="11.5" fill="#0f8a45" text-anchor="middle">合格</text>
+    <rect x="458" y="177" width="62" height="18" rx="4" fill="#fdeced" stroke="#f5c2c4"/>
+    <text x="489" y="190" font-size="11.5" fill="#c92a2a" text-anchor="middle">不合格</text>
+    <rect x="458" y="211" width="52" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="484" y="224" font-size="11.5" fill="#0f8a45" text-anchor="middle">合格</text>
+
+    <rect x="206" y="252" width="380" height="152" rx="9" fill="#ffffff" stroke="#e3e8f0"/>
+    <text x="222" y="276" font-size="13.5" font-weight="700" fill="#14315c">记录摘要（F001 / 2026-06-29）</text>
+    <g font-size="12" fill="#334155">
+      <text x="222" y="302">校验人员：李一　|　提交时间：2026-06-29 10:42</text>
+      <text x="222" y="326">天平唯一号：SJS2605002　|　砝码盒：FM2512920</text>
+      <text x="222" y="350">前置条件：清洁 ✔　水平 ✔　内部校正 通过</text>
+      <text x="222" y="374">备注：无</text>
+    </g>
+    <rect x="222" y="386" width="152" height="26" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="298" y="403" font-size="12" fill="#334155" text-anchor="middle">回看完整视频 3′42″</text>
+    <rect x="388" y="386" width="182" height="26" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+    <text x="479" y="403" font-size="11.5" fill="#1b4f91" text-anchor="middle">视频ID V-20260629-0043</text>
+
+    <!-- 右侧：详情 -->
+    <rect x="600" y="80" width="660" height="704" rx="9" fill="#ffffff" stroke="#e3e8f0"/>
+    <text x="618" y="106" font-size="13.5" font-weight="700" fill="#14315c">校验记录详情 · F001（2026-06-29）</text>
+    <rect x="1132" y="88" width="110" height="22" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="1187" y="103" font-size="11.5" fill="#0f8a45" text-anchor="middle">系统判定：合格</text>
+
+    <rect x="618" y="124" width="624" height="28" fill="#f5f7fb"/>
+    <g font-size="12.5" font-weight="700" fill="#43536e">
+      <text x="630" y="143">砝码</text><text x="690" y="143">限度 (1±0.05%)L</text>
+      <text x="900" y="143" text-anchor="end">I-1</text><text x="1000" y="143" text-anchor="end">I-2</text><text x="1100" y="143" text-anchor="end">I-3</text>
+      <text x="1130" y="143">判定</text>
+    </g>
+    <line x1="618" y1="184" x2="1242" y2="184" stroke="#eef2f7"/>
+    <line x1="618" y1="216" x2="1242" y2="216" stroke="#eef2f7"/>
+    <line x1="618" y1="248" x2="1242" y2="248" stroke="#eef2f7"/>
+    <g font-size="12" fill="#26303f">
+      <text x="630" y="171">200 g</text><text x="690" y="171">199.9000~200.1000</text>
+      <text x="630" y="203">50 g</text><text x="690" y="203">49.9750~50.0250</text>
+      <text x="630" y="235">10 g</text><text x="690" y="235">9.9950~10.0050</text>
+    </g>
+    <g font-size="12" font-family="Consolas, monospace" fill="#26303f" text-anchor="end">
+      <text x="900" y="171">200.0006</text><text x="1000" y="171">199.9998</text><text x="1100" y="171">200.0011</text>
+      <text x="900" y="203">50.0003</text><text x="1000" y="203">49.9997</text><text x="1100" y="203">50.0002</text>
+      <text x="900" y="235">10.0000</text><text x="1000" y="235">10.0000</text><text x="1100" y="235">9.9999</text>
+    </g>
+    <rect x="1130" y="155" width="52" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="1156" y="168" font-size="11.5" fill="#0f8a45" text-anchor="middle">合格</text>
+    <rect x="1130" y="187" width="52" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="1156" y="200" font-size="11.5" fill="#0f8a45" text-anchor="middle">合格</text>
+    <rect x="1130" y="219" width="52" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="1156" y="232" font-size="11.5" fill="#0f8a45" text-anchor="middle">合格</text>
+    <text x="618" y="270" font-size="11.5" fill="#94a3b8">※ 10 g 第 1 次示值为人工核对后的确认值，原识别值 10.001 g 已留痕</text>
+
+    <text x="618" y="296" font-size="12.5" font-weight="700" fill="#14315c">该天平本次称重值曲线（示值序号 1~9，虚线为 ±0.05% 限度）</text>
+    <rect x="618" y="306" width="624" height="190" rx="6" fill="#fbfcfe"/>
+    <line x1="686" y1="476" x2="1170" y2="476" stroke="#94a3b8"/>
+    <g stroke="#e3e8f0">
+      <line x1="686" y1="326" x2="1170" y2="326"/><line x1="686" y1="366" x2="1170" y2="366"/>
+      <line x1="686" y1="406" x2="1170" y2="406"/><line x1="686" y1="446" x2="1170" y2="446"/>
+    </g>
+    <line x1="686" y1="336" x2="1170" y2="336" stroke="#c92a2a" stroke-dasharray="6 4"/>
+    <line x1="686" y1="466" x2="1170" y2="466" stroke="#c92a2a" stroke-dasharray="6 4"/>
+    <line x1="686" y1="401" x2="1170" y2="401" stroke="#cbd5e1" stroke-dasharray="3 3"/>
+    <g font-size="10" fill="#c92a2a"><text x="1176" y="340">+0.05%</text><text x="1176" y="470">-0.05%</text></g>
+    <g font-size="10" fill="#7b8798"><text x="624" y="340">上限</text><text x="624" y="405">标称值</text><text x="624" y="470">下限</text></g>
+    <polyline fill="none" stroke="#1b4f91" stroke-width="2" points="686,398 747,404 807,396 868,402 928,405 988,403 1049,390 1109,401 1170,407"/>
+    <g fill="#1b4f91">
+      <circle cx="686" cy="398" r="3.6"/><circle cx="747" cy="404" r="3.6"/><circle cx="807" cy="396" r="3.6"/>
+      <circle cx="868" cy="402" r="3.6"/><circle cx="928" cy="405" r="3.6"/><circle cx="988" cy="403" r="3.6"/>
+      <circle cx="1049" cy="390" r="3.6"/><circle cx="1109" cy="401" r="3.6"/><circle cx="1170" cy="407" r="3.6"/>
+    </g>
+    <g font-size="10.5" fill="#43536e" text-anchor="middle">
+      <text x="686" y="491">1</text><text x="747" y="491">2</text><text x="807" y="491">3</text><text x="868" y="491">4</text><text x="928" y="491">5</text>
+      <text x="988" y="491">6</text><text x="1049" y="491">7</text><text x="1109" y="491">8</text><text x="1170" y="491">9</text>
+    </g>
+
+    <!-- 底部操作 -->
+    <text x="618" y="524" font-size="12" fill="#64748b">本条校验频次</text>
+    <rect x="618" y="532" width="170" height="34" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="634" y="554" font-size="13" fill="#334155">每天 ▾</text>
+    <text x="806" y="524" font-size="12" fill="#64748b">复核意见</text>
+    <rect x="806" y="532" width="436" height="34" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="822" y="554" font-size="13" fill="#94a3b8">如有异议请说明</text>
+    <rect x="1034" y="608" width="96" height="34" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="1082" y="630" font-size="13" fill="#334155" text-anchor="middle">打回修改</text>
+    <rect x="1140" y="608" width="102" height="34" rx="6" fill="#1b4f91"/>
+    <text x="1191" y="630" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">确认通过</text>
+  </g>
+</svg>

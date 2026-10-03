@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <rect width="1280" height="800" fill="#ffffff"/>
+  <rect x="0" y="0" width="1280" height="54" fill="#14315c"/>
+  <rect x="20" y="20" width="15" height="15" rx="3" fill="#58a6ff"/>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#ffffff"><text x="44" y="34">天平校验系统</text></g>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="13" fill="#c3d3ea">
+    <text x="200" y="34">待复核确认</text>
+    <text x="291" y="34" fill="#ffffff">全部校验记录</text>
+    <rect x="291" y="41" width="78" height="2" fill="#58a6ff"/>
+    <text x="401" y="34">模板与天平维护</text>
+  </g>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="12.5" fill="#d7e3f5">
+    <rect x="1052" y="14" width="148" height="26" rx="13" fill="none" stroke="#3b6099"/>
+    <text x="1126" y="31" text-anchor="middle">齐一 · 复核确认人员</text>
+    <text x="1215" y="31" fill="#c3d3ea">退出</text>
+  </g>
+  <rect x="0" y="54" width="186" height="746" fill="#f5f7fb"/>
+  <line x1="186" y1="54" x2="186" y2="800" stroke="#e3e8f0"/>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="13">
+    <text x="24" y="93" fill="#43536e">待复核确认</text>
+    <circle cx="158" cy="88" r="9" fill="#dc2626"/>
+    <text x="158" y="92" font-size="11.5" fill="#ffffff" text-anchor="middle">3</text>
+    <rect x="10" y="110" width="166" height="32" rx="7" fill="#1b4f91"/>
+    <text x="24" y="131" fill="#ffffff" font-weight="700">全部校验记录</text>
+    <text x="24" y="173" fill="#43536e">模板与天平维护</text>
+  </g>
+
+  <g font-family="Microsoft YaHei, sans-serif">
+    <text x="206" y="94" font-size="17" font-weight="700" fill="#14315c">全部校验记录</text>
+    <rect x="1080" y="74" width="180" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="1170" y="95" font-size="12.5" fill="#334155" text-anchor="middle">导出 PDF（含只读水印）</text>
+
+    <!-- 查询条件 -->
+    <rect x="206" y="112" width="1054" height="74" rx="9" fill="#ffffff" stroke="#e3e8f0"/>
+    <g font-size="12" fill="#64748b">
+      <text x="224" y="136">天平编号</text><text x="390" y="136">校验人员</text><text x="546" y="136">校验日期（起）</text>
+      <text x="722" y="136">校验日期（止）</text><text x="898" y="136">记录状态</text>
+    </g>
+    <g font-size="13">
+      <rect x="224" y="146" width="150" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/><text x="240" y="167" fill="#334155">全部 ▾</text>
+      <rect x="390" y="146" width="140" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/><text x="406" y="167" fill="#334155">全部 ▾</text>
+      <rect x="546" y="146" width="160" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/><text x="562" y="167" fill="#334155">2026-06-01</text>
+      <rect x="722" y="146" width="160" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/><text x="738" y="167" fill="#334155">2026-06-30</text>
+      <rect x="898" y="146" width="140" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/><text x="914" y="167" fill="#334155">已复核 ▾</text>
+    </g>
+    <rect x="1054" y="146" width="80" height="32" rx="6" fill="#1b4f91"/>
+    <text x="1094" y="167" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">查询</text>
+    <rect x="1144" y="146" width="98" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="1193" y="167" font-size="13" fill="#334155" text-anchor="middle">重置</text>
+
+    <!-- 列表 -->
+    <rect x="206" y="198" width="1054" height="30" fill="#f5f7fb"/>
+    <g font-size="12.5" font-weight="700" fill="#43536e">
+      <text x="222" y="217">校验日期</text><text x="320" y="217">天平编号</text><text x="400" y="217">唯一号</text>
+      <text x="510" y="217">校验人员</text><text x="600" y="217">复核人员</text><text x="690" y="217">外部校验判定</text>
+      <text x="830" y="217">记录状态</text><text x="1130" y="217">操作</text>
+    </g>
+    <g stroke="#eef2f7">
+      <line x1="206" y1="272" x2="1260" y2="272"/><line x1="206" y1="316" x2="1260" y2="316"/>
+      <line x1="206" y1="360" x2="1260" y2="360"/><line x1="206" y1="404" x2="1260" y2="404"/>
+      <line x1="206" y1="448" x2="1260" y2="448"/>
+    </g>
+    <g font-size="12.5" fill="#26303f">
+      <text x="222" y="254">2026-06-29</text><text x="320" y="254" font-weight="700" fill="#14315c">F001</text><text x="400" y="254">SJS2605002</text><text x="510" y="254">李一</text><text x="600" y="254">齐一</text>
+      <text x="222" y="298">2026-06-29</text><text x="320" y="298" font-weight="700" fill="#14315c">F002</text><text x="400" y="298">SJS2605003</text><text x="510" y="298">李二</text><text x="600" y="298">齐一</text>
+      <text x="222" y="342">2026-06-28</text><text x="320" y="342" font-weight="700" fill="#14315c">F001</text><text x="400" y="342">SJS2605002</text><text x="510" y="342">李一</text><text x="600" y="342">齐一</text>
+      <text x="222" y="386">2026-06-28</text><text x="320" y="386" font-weight="700" fill="#14315c">F003</text><text x="400" y="386">SJS2605004</text><text x="510" y="386">李二</text><text x="600" y="386">—</text>
+      <text x="222" y="430">2026-06-27</text><text x="320" y="430" font-weight="700" fill="#14315c">F001</text><text x="400" y="430">SJS2605002</text><text x="510" y="430">李二</text><text x="600" y="430">—</text>
+    </g>
+    <rect x="690" y="237" width="52" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="716" y="250" font-size="11.5" fill="#0f8a45" text-anchor="middle">合格</text>
+    <rect x="690" y="281" width="62" height="18" rx="4" fill="#fdeced" stroke="#f5c2c4"/>
+    <text x="721" y="294" font-size="11.5" fill="#c92a2a" text-anchor="middle">不合格</text>
+    <rect x="690" y="325" width="52" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="716" y="338" font-size="11.5" fill="#0f8a45" text-anchor="middle">合格</text>
+    <rect x="690" y="369" width="52" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="716" y="382" font-size="11.5" fill="#0f8a45" text-anchor="middle">合格</text>
+    <rect x="830" y="237" width="62" height="18" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+    <text x="861" y="250" font-size="11.5" fill="#1b4f91" text-anchor="middle">已复核</text>
+    <rect x="830" y="281" width="62" height="18" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+    <text x="861" y="294" font-size="11.5" fill="#1b4f91" text-anchor="middle">已复核</text>
+    <rect x="830" y="325" width="62" height="18" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+    <text x="861" y="338" font-size="11.5" fill="#1b4f91" text-anchor="middle">已复核</text>
+    <rect x="830" y="369" width="62" height="18" rx="4" fill="#fef4e6" stroke="#f6d9a8"/>
+    <text x="861" y="382" font-size="11.5" fill="#b96a05" text-anchor="middle">待复核</text>
+    <rect x="830" y="413" width="62" height="18" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="861" y="426" font-size="11.5" fill="#64748b" text-anchor="middle">已作废</text>
+    <g>
+      <rect x="1130" y="237" width="86" height="18" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+      <text x="1173" y="250" font-size="11.5" fill="#1b4f91" text-anchor="middle">查看 · 曲线</text>
+      <rect x="1130" y="281" width="86" height="18" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+      <text x="1173" y="294" font-size="11.5" fill="#1b4f91" text-anchor="middle">查看 · 曲线</text>
+      <rect x="1130" y="325" width="86" height="18" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+      <text x="1173" y="338" font-size="11.5" fill="#1b4f91" text-anchor="middle">查看 · 曲线</text>
+      <rect x="1130" y="369" width="86" height="18" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+      <text x="1173" y="382" font-size="11.5" fill="#1b4f91" text-anchor="middle">查看 · 曲线</text>
+      <rect x="1130" y="413" width="46" height="18" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+      <text x="1153" y="426" font-size="11.5" fill="#1b4f91" text-anchor="middle">查看</text>
+    </g>
+
+    <!-- 曲线 -->
+    <rect x="206" y="462" width="1054" height="214" rx="9" fill="#ffffff" stroke="#e3e8f0"/>
+    <text x="224" y="488" font-size="13" font-weight="700" fill="#14315c">F001 · 称重值曲线（按天平编号查询，横轴为示值序号 1~9）</text>
+    <rect x="224" y="498" width="1018" height="158" rx="6" fill="#fbfcfe"/>
+    <line x1="260" y1="638" x2="1210" y2="638" stroke="#94a3b8"/>
+    <line x1="260" y1="520" x2="1210" y2="520" stroke="#c92a2a" stroke-dasharray="7 4"/>
+    <line x1="260" y1="620" x2="1210" y2="620" stroke="#c92a2a" stroke-dasharray="7 4"/>
+    <line x1="260" y1="570" x2="1210" y2="570" stroke="#cbd5e1" stroke-dasharray="3 3"/>
+    <rect x="1140" y="514" width="80" height="14" fill="#fbfcfe"/>
+    <text x="1180" y="525" font-size="10" fill="#c92a2a" text-anchor="middle">+0.05% L</text>
+    <rect x="1140" y="614" width="80" height="14" fill="#fbfcfe"/>
+    <text x="1180" y="625" font-size="10" fill="#c92a2a" text-anchor="middle">-0.05% L</text>
+    <g font-size="10.5" fill="#7b8798"><text x="232" y="524">上限</text><text x="232" y="574">标称值</text><text x="232" y="624">下限</text></g>
+    <polyline fill="none" stroke="#1b4f91" stroke-width="2" points="300,566 400,574 500,562 600,570 700,580 800,572 900,556 1000,576 1100,582"/>
+    <polyline fill="none" stroke="#e5a33a" stroke-width="2" stroke-dasharray="7 4" points="300,574 400,568 500,580 600,562 700,570 800,576 900,566 1000,560 1100,570"/>
+    <g fill="#1b4f91">
+      <circle cx="300" cy="566" r="3.4"/><circle cx="400" cy="574" r="3.4"/><circle cx="500" cy="562" r="3.4"/>
+      <circle cx="600" cy="570" r="3.4"/><circle cx="700" cy="580" r="3.4"/><circle cx="800" cy="572" r="3.4"/>
+      <circle cx="900" cy="556" r="3.4"/><circle cx="1000" cy="576" r="3.4"/><circle cx="1100" cy="582" r="3.4"/>
+    </g>
+    <g font-size="11" fill="#43536e" text-anchor="middle">
+      <text x="300" y="652">1</text><text x="400" y="652">2</text><text x="500" y="652">3</text><text x="600" y="652">4</text><text x="700" y="652">5</text>
+      <text x="800" y="652">6</text><text x="900" y="652">7</text><text x="1000" y="652">8</text><text x="1100" y="652">9</text>
+    </g>
+    <line x1="960" y1="512" x2="988" y2="512" stroke="#1b4f91" stroke-width="2"/>
+    <text x="994" y="516" font-size="11" fill="#43536e">2026-06-29</text>
+    <line x1="1080" y1="512" x2="1108" y2="512" stroke="#e5a33a" stroke-width="2" stroke-dasharray="7 4"/>
+    <text x="1114" y="516" font-size="11" fill="#43536e">2026-06-28</text>
+  </g>
+</svg>

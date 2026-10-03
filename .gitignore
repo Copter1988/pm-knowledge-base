@@ -1,0 +1,20 @@
+# Claude 会话与个人设置
+.claudian/
+
+# Obsidian 工作区状态（保留 .obsidian 配置，忽略 UI 状态与缓存）
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/*/data.json
+
+# IDE 工程文件
+.idea/
+*.iml
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时文件
+*.tmp

@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <rect width="1280" height="800" fill="#ffffff"/>
+  <!-- 顶栏 -->
+  <rect x="0" y="0" width="1280" height="54" fill="#14315c"/>
+  <rect x="20" y="20" width="15" height="15" rx="3" fill="#58a6ff"/>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#ffffff">
+    <text x="44" y="34">天平校验系统</text>
+  </g>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="13" fill="#c3d3ea">
+    <text x="200" y="34" fill="#ffffff">工作台</text>
+    <rect x="200" y="41" width="39" height="2" fill="#58a6ff"/>
+    <text x="262" y="34">我的校验记录</text>
+    <text x="372" y="34">称重值曲线</text>
+  </g>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="12.5" fill="#d7e3f5">
+    <rect x="1082" y="14" width="118" height="26" rx="13" fill="none" stroke="#3b6099"/>
+    <text x="1141" y="31" text-anchor="middle">李一 · 检验人员</text>
+    <text x="1215" y="31" fill="#c3d3ea">退出</text>
+  </g>
+  <!-- 侧栏 -->
+  <rect x="0" y="54" width="186" height="746" fill="#f5f7fb"/>
+  <line x1="186" y1="54" x2="186" y2="800" stroke="#e3e8f0"/>
+  <g font-family="Microsoft YaHei, sans-serif" font-size="13">
+    <rect x="10" y="72" width="166" height="32" rx="7" fill="#1b4f91"/>
+    <text x="24" y="93" fill="#ffffff" font-weight="700">新建校验</text>
+    <text x="24" y="135" fill="#43536e">我的校验记录</text>
+    <text x="24" y="173" fill="#43536e">称重值曲线</text>
+  </g>
+
+  <g font-family="Microsoft YaHei, sans-serif">
+    <!-- 标题 -->
+    <text x="206" y="94" font-size="17" font-weight="700" fill="#14315c">新建校验</text>
+    <text x="286" y="94" font-size="12" fill="#64748b">当天录制、当天上传</text>
+    <rect x="1120" y="80" width="140" height="22" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="1190" y="95" font-size="11.5" fill="#64748b" text-anchor="middle">记录号将于提交时生成</text>
+
+    <!-- 步骤条 -->
+    <circle cx="216" cy="128" r="10" fill="#17a34a"/>
+    <text x="216" y="132" font-size="11.5" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="234" y="132" font-size="12.5" fill="#43536e">导入视频</text>
+    <line x1="310" y1="128" x2="440" y2="128" stroke="#e3e8f0"/>
+    <circle cx="452" cy="128" r="10" fill="#1b4f91"/>
+    <text x="452" y="132" font-size="11.5" fill="#ffffff" text-anchor="middle">2</text>
+    <text x="470" y="132" font-size="12.5" font-weight="700" fill="#14315c">识别与纠错</text>
+    <line x1="556" y1="128" x2="686" y2="128" stroke="#e3e8f0"/>
+    <circle cx="698" cy="128" r="10" fill="#eef2f7"/>
+    <text x="698" y="132" font-size="11.5" fill="#94a3b8" text-anchor="middle">3</text>
+    <text x="716" y="132" font-size="12.5" fill="#94a3b8">核对确认</text>
+    <line x1="788" y1="128" x2="918" y2="128" stroke="#e3e8f0"/>
+    <circle cx="930" cy="128" r="10" fill="#eef2f7"/>
+    <text x="930" y="132" font-size="11.5" fill="#94a3b8" text-anchor="middle">4</text>
+    <text x="948" y="132" font-size="12.5" fill="#94a3b8">提交复核</text>
+
+    <!-- 上传区 -->
+    <rect x="206" y="164" width="652" height="152" rx="10" fill="#f8fbff" stroke="#a9bfdc" stroke-dasharray="7 5"/>
+    <text x="532" y="212" font-size="26" fill="#7ba7d9" text-anchor="middle">⬆</text>
+    <text x="532" y="246" font-size="14" font-weight="700" fill="#14315c" text-anchor="middle">点击选择视频，或把视频文件拖到此处</text>
+    <text x="532" y="270" font-size="12" fill="#8792a4" text-anchor="middle">支持 mp4 / mov，单个文件建议 ≤ 500 MB；请在拍摄当天上传</text>
+    <rect x="378" y="286" width="140" height="28" rx="6" fill="#1b4f91"/>
+    <text x="448" y="305" font-size="12.5" fill="#ffffff" text-anchor="middle">选择视频文件</text>
+    <rect x="528" y="286" width="140" height="28" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="598" y="305" font-size="12.5" fill="#334155" text-anchor="middle">手机上传 / 扫码</text>
+
+    <!-- 已导入文件 -->
+    <rect x="872" y="164" width="388" height="152" rx="9" fill="#f8fbff" stroke="#e3e8f0"/>
+    <text x="892" y="192" font-size="13.5" font-weight="700" fill="#14315c">已导入文件</text>
+    <text x="892" y="218" font-size="12.5" font-weight="700" fill="#14315c">XJ20260629_F001.mp4</text>
+    <rect x="1078" y="204" width="52" height="20" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="1104" y="218" font-size="11.5" fill="#64748b" text-anchor="middle">3′42″</text>
+    <rect x="892" y="230" width="348" height="8" rx="4" fill="#e8eef7"/>
+    <rect x="892" y="230" width="348" height="8" rx="4" fill="#1b4f91"/>
+    <text x="892" y="262" font-size="11.5" fill="#0f8a45">识别完成 · 用时 47 秒</text>
+    <rect x="1080" y="250" width="160" height="20" rx="4" fill="#eaf2fd" stroke="#c3d8f5"/>
+    <text x="1160" y="264" font-size="11.5" fill="#1b4f91" text-anchor="middle">视频ID V-20260629-0043</text>
+
+    <!-- 识别摘要 -->
+    <rect x="206" y="332" width="253" height="100" rx="9" fill="#ffffff" stroke="#e3e8f0"/>
+    <text x="222" y="356" font-size="11.5" fill="#7b8798">拍摄人员（人员卡）</text>
+    <text x="222" y="382" font-size="14" font-weight="700" fill="#14315c">李一</text>
+    <rect x="262" y="370" width="126" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="325" y="383" font-size="11.5" fill="#0f8a45" text-anchor="middle">与登录账号一致</text>
+    <rect x="222" y="398" width="86" height="18" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="265" y="411" font-size="11.5" fill="#64748b" text-anchor="middle">卡片号 P-002</text>
+
+    <rect x="473" y="332" width="253" height="100" rx="9" fill="#ffffff" stroke="#e3e8f0"/>
+    <text x="489" y="356" font-size="11.5" fill="#7b8798">天平（设备二维码）</text>
+    <text x="489" y="382" font-size="14" font-weight="700" fill="#14315c">F001</text>
+    <rect x="536" y="370" width="140" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="606" y="383" font-size="11.5" fill="#0f8a45" text-anchor="middle">已在主数据中匹配</text>
+    <rect x="489" y="398" width="222" height="18" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="600" y="411" font-size="11.5" fill="#64748b" text-anchor="middle">二维码仅含天平 ID → 关联主数据</text>
+
+    <rect x="740" y="332" width="253" height="100" rx="9" fill="#ffffff" stroke="#e3e8f0"/>
+    <text x="756" y="356" font-size="11.5" fill="#7b8798">量程 / 精度（主数据 ↔ 铭牌识别）</text>
+    <text x="756" y="382" font-size="14" font-weight="700" fill="#14315c">Max 220 g · d 0.1 mg</text>
+    <rect x="923" y="370" width="46" height="18" rx="4" fill="#e7f7ee" stroke="#b7e6cd"/>
+    <text x="946" y="383" font-size="11.5" fill="#0f8a45" text-anchor="middle">一致</text>
+    <rect x="756" y="398" width="92" height="18" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="802" y="411" font-size="11.5" fill="#64748b" text-anchor="middle">单量程 F001</text>
+
+    <rect x="1007" y="332" width="253" height="100" rx="9" fill="#ffffff" stroke="#e3e8f0"/>
+    <text x="1023" y="356" font-size="11.5" fill="#7b8798">示值识别</text>
+    <text x="1023" y="382" font-size="14" font-weight="700" fill="#14315c">9 / 9 次</text>
+    <rect x="1088" y="370" width="118" height="18" rx="4" fill="#fef4e6" stroke="#f6d9a8"/>
+    <text x="1147" y="383" font-size="11.5" fill="#b96a05" text-anchor="middle">1 处待人工确认</text>
+    <rect x="1023" y="398" width="112" height="18" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="1079" y="411" font-size="11.5" fill="#64748b" text-anchor="middle">读数时间已记录</text>
+
+    <!-- 提示条 -->
+    <rect x="206" y="450" width="1054" height="40" rx="8" fill="#effaf3" stroke="#b7e6cd"/>
+    <text x="224" y="475" font-size="12.5" fill="#0f7a3d">✔ 视频识别的拍摄人员与登录人员一致，天平已在主数据中匹配，可以进入核对。</text>
+
+    <rect x="206" y="502" width="1054" height="52" rx="8" fill="#fdf2f3" stroke="#f5c2c4"/>
+    <text x="224" y="524" font-size="12.5" fill="#b3261e">✕ 若识别到的拍摄人员与当前登录账号不一致，系统不予记录并提示：</text>
+    <text x="224" y="544" font-size="11.5" fill="#b3261e">「视频拍摄人员为『李二』，与登录账号『李一』不一致，请用本人账号操作。」</text>
+
+    <!-- 底部按钮 -->
+    <rect x="1040" y="572" width="100" height="32" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="1090" y="593" font-size="13" fill="#334155" text-anchor="middle">取消</text>
+    <rect x="1154" y="572" width="106" height="32" rx="6" fill="#1b4f91"/>
+    <text x="1207" y="593" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">进入核对 →</text>
+  </g>
+</svg>
