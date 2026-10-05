@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # createDatabaseIfNotExist=true 会在首次连接时自动建库 tpjy
+    url: jdbc:mysql://localhost:3306/tpjy?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: "123456"
+  sql:
+    init:
+      mode: always                 # 每次启动自动执行 schema.sql（幂等）
+      schema-locations: classpath:sql/schema.sql
+      encoding: UTF-8
+      continue-on-error: true
+  thymeleaf:
+    cache: false                   # 开发期关闭模板缓存
+  servlet:
+    multipart:
+      max-file-size: 500MB         # 视频较大，放开上传限制
+      max-request-size: 500MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+
+app:
+  upload-dir: ./upload             # 视频/抽帧目录（相对运行目录）
+  video-retain-days: 7             # 视频保留 7 天

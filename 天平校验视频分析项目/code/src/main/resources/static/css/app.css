@@ -1,0 +1,20 @@
+body { font-family: "Microsoft YaHei", sans-serif; margin: 0; background: #f5f7fb; color: #26303f; }
+.topbar { background: #14315c; color: #fff; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+.topbar .brand { font-weight: 700; font-size: 16px; color: #fff; }
+.topbar a { color: #c3d3ea; text-decoration: none; margin-left: 16px; font-size: 13px; }
+.topbar a:hover { color: #fff; }
+.container { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+.card { background: #fff; border: 1px solid #e3e8f0; border-radius: 9px; padding: 24px; margin-bottom: 16px; }
+.card h2 { color: #14315c; margin-top: 0; }
+.btn { display: inline-block; background: #1b4f91; color: #fff; padding: 9px 22px; border-radius: 6px; text-decoration: none; border: none; cursor: pointer; font-size: 14px; }
+.btn:hover { background: #164180; }
+.btn-block { width: 100%; font-size: 15px; }
+.placeholder { color: #94a3b8; }
+.login-box { max-width: 360px; margin: 100px auto; background: #fff; border: 1px solid #e3e8f0; border-radius: 12px; padding: 32px; }
+.login-box h2 { color: #14315c; margin-top: 0; }
+input[type=text], input[type=password] { width: 100%; padding: 10px; margin: 8px 0 16px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+.error { color: #c0392b; font-size: 13px; }
+table.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.grid th, table.grid td { border: 1px solid #e3e8f0; padding: 8px 12px; text-align: left; }
+table.grid th { background: #f5f7fb; color: #43536e; }
+.muted { color: #94a3b8; font-size: 12px; }

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <title th:text="${title}">天平校验系统</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<!-- 顶部导航（按角色显示菜单） -->
+<nav class="topbar" th:fragment="topbar">
+    <span class="brand">天平校验系统</span>
+    <div th:switch="${session.loginUser.role}">
+        <span th:case="'CHECKER'">
+            <a th:href="@{/checker/new}">新建校验</a>
+            <a th:href="@{/checker/workbench}">我的校验记录</a>
+            <a th:href="@{/checker/curve}">称重值曲线</a>
+        </span>
+        <span th:case="'REVIEWER'">
+            <a th:href="@{/reviewer/pending}">待复核确认</a>
+            <a th:href="@{/reviewer/records}">查询与导出</a>
+            <a th:href="@{/reviewer/balance}">天平与模板维护</a>
+        </span>
+        <span th:case="'ADMIN'">
+            <a th:href="@{/admin/users}">账号维护</a>
+        </span>
+    </div>
+    <div>
+        <span th:text="${session.loginUser.realName} + ' · ' + ${session.loginUser.role}"></span>
+        <a th:href="@{/logout}">退出</a>
+    </div>
+</nav>
+
+</body>
+</html>

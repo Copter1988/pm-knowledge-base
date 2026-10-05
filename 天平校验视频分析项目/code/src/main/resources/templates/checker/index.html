@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('工作台')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>工作台 · 检验人员</h2>
+        <p class="placeholder">日常校验流程：导入视频 → 核对 → 提交（≤3 步）。</p>
+        <a class="btn" th:href="@{/checker/new}">＋ 新建校验</a>
+    </div>
+    <div class="card">
+        <h2>我的校验记录</h2>
+        <p class="placeholder">TODO 迭代1：按天平编号 + 日期段查询（默认已复核，作废可另行调出）。</p>
+    </div>
+</div>
+</body>
+</html>

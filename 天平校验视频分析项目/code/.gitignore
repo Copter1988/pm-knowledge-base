@@ -1,0 +1,7 @@
+target/
+upload/
+.idea/
+*.iml
+*.log
+*.class
+.claude/
