@@ -101,6 +101,7 @@ mvn -s mvn-settings.xml test
 测试使用 H2 内存数据库启动完整 Spring 上下文，并实际调用上传接口、ffmpeg、QR 识别、查询、曲线和 PDF 下载；不依赖本机 MySQL 密码。
 
 详细交接、接口边界和验收注意点见 `docs/甲模块交付说明.md`。
+成员乙继续开发请先看 `docs/给乙的继续开发清单.md`。
 
 数据库每日备份脚本：`scripts/backup-tpjy.ps1`（通过 `TPJY_DB_USER` / `TPJY_DB_PASSWORD` 提供凭据）。
 
