@@ -18,7 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns("/login", "/logout", "/css/**", "/js/**", "/echarts/**",
-                        "/bootstrap/**", "/upload/**", "/error");
+                        "/bootstrap/**", "/error");
     }
 
     /** 把磁盘 upload 目录映射为 /upload/** 静态资源（视频回放、图片）。 */

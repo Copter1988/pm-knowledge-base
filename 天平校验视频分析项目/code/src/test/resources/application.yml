@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:tpjy;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/schema.sql
+      continue-on-error: false
+  thymeleaf:
+    cache: false
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+app:
+  video-dir: ./target/test-upload/video
+  frame-dir: ./target/test-upload/frame
+  frame-extractor: ffmpeg
+  ffmpeg-path: E:/ffmpeg/bin/ffmpeg.exe
+  frame-interval: 1
+  recognize-timeout-seconds: 120
+  video-keep-days: 7
+  limit-rate: "0.0005"
+  big-deviation-rate: "0.01"
+  pdf-font-path: /fonts/simhei.ttf
+  cli-output-dir: ./target/test-out

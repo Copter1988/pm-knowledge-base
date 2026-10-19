@@ -6,7 +6,40 @@
 <div class="container">
     <div class="card">
         <h2>记录查询与导出</h2>
-        <p class="placeholder">TODO 迭代2：查询所有记录、导出复核通过的 PDF（可打印）。</p>
+        <form method="get" th:action="@{/reviewer/records}" class="query-form">
+            <select name="balanceId">
+                <option value="">全部天平</option>
+                <option th:each="b : ${balances}" th:value="${b.id}" th:text="${b.balanceCode}"
+                        th:selected="${b.id == balanceId}"></option>
+            </select>
+            <input type="date" name="from" th:value="${from}">
+            <input type="date" name="to" th:value="${to}">
+            <label><input type="checkbox" name="includeVoid" value="true" th:checked="${includeVoid}"> 含已作废</label>
+            <button class="btn" type="submit">查询</button>
+        </form>
+        <p class="muted" th:text="|共 ${pageResult.total} 条|"></p>
+        <p class="placeholder" th:if="${#lists.isEmpty(pageResult.list)}">暂无符合条件的记录。</p>
+        <table class="grid" th:unless="${#lists.isEmpty(pageResult.list)}">
+            <tr><th>记录号</th><th>校验日期</th><th>天平</th><th>检验人员</th><th>结论</th><th>状态</th><th>曲线</th><th>导出</th></tr>
+            <tr th:each="r : ${pageResult.list}">
+                <td th:text="${r.recordNo}"></td>
+                <td th:text="${r.checkDate == null ? '-' : #dates.format(r.checkDate, 'yyyy-MM-dd HH:mm')}"></td>
+                <td th:text="${r.balanceCode ?: r.balanceId}"></td>
+                <td th:text="${r.checkerName ?: r.checkerId}"></td>
+                <td th:text="${r.result == 1 ? '合格' : (r.result == 0 ? '不合格' : '-')}"></td>
+                <td th:text="${r.status}"></td>
+                <td><a th:href="@{/reviewer/curve(recordId=${r.id})}">查看曲线</a></td>
+                <td>
+                    <a th:if="${r.status == '已复核'}" th:href="@{/reviewer/export/pdf(recordId=${r.id})}">下载 PDF</a>
+                    <span th:unless="${r.status == '已复核'}" class="muted">仅已复核可导出</span>
+                </td>
+            </tr>
+        </table>
+        <div class="pager" th:if="${pageResult.total > pageResult.pageSize}">
+            <a th:if="${pageResult.page > 1}" th:href="@{/reviewer/records(balanceId=${balanceId},from=${from},to=${to},includeVoid=${includeVoid},page=${pageResult.page - 1})}">上一页</a>
+            <span th:text="|第 ${pageResult.page} 页|"></span>
+            <a th:if="${pageResult.page * pageResult.pageSize < pageResult.total}" th:href="@{/reviewer/records(balanceId=${balanceId},from=${from},to=${to},includeVoid=${includeVoid},page=${pageResult.page + 1})}">下一页</a>
+        </div>
     </div>
 </div>
 </body>

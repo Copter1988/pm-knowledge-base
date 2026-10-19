@@ -6,7 +6,30 @@
 <div class="container">
     <div class="card">
         <h2>导入校验视频</h2>
-        <p class="placeholder">TODO 迭代1：上传当天录制的视频 → 识别人员/天平二维码 → OCR 预填 9 次示值。</p>
+        <p class="muted">视频会先落盘，再由 ffmpeg 抽帧并用 ZXing 识别人二维码和天平二维码。示值 OCR 未接入时，可在这里人工补录 9 个示值。</p>
+        <p class="error" th:if="${error}" th:text="${error}"></p>
+        <form class="form-grid" th:action="@{/checker/upload}" method="post" enctype="multipart/form-data">
+            <label>选择天平</label>
+            <select name="balanceId" required>
+                <option value="">请选择天平</option>
+                <option th:each="b : ${balances}" th:value="${b.id}"
+                        th:text="${b.balanceCode + ' · ' + b.range1 + ' · d ' + b.range1Precision}"></option>
+            </select>
+
+            <label>校验视频</label>
+            <input type="file" name="video" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm" required>
+
+            <label>视频号（可选）</label>
+            <input type="text" name="videoNo" placeholder="例如 V-20260629-0043">
+
+            <label>9 次示值（可选，逗号或空格分隔）</label>
+            <textarea name="manualValues" rows="3"
+                      placeholder="200.0006,199.9998,200.0011,50.0003,49.9997,50.0002,10.0001,10.0000,9.9999"></textarea>
+
+            <div></div>
+            <button class="btn" type="submit">导入并识别</button>
+        </form>
+        <p class="notice">人员卡内容：PERSON:姓名；天平卡内容：BALANCE:天平编号。识别不到示值时会提示人工补录，不影响进入核对页。</p>
     </div>
 </div>
 </body>

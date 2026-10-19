@@ -1,20 +1,23 @@
-# 天平校验视频分析系统 · 代码框架
+# 天平校验视频分析系统 · 代码工程
 
-课程项目（第 1 组）。技术栈：Spring Boot 2.7 + Thymeleaf + MyBatis-Plus + MySQL 8 + ZXing（二维码）+ OCR 预留接口。
+课程项目（第 1 组）。当前分支已合并成员甲的 4 个编码模块：
+视频导入与视觉识别、校验判定引擎、记录查询/曲线/PDF、留痕与审计。
+技术栈：Spring Boot 2.7 + Thymeleaf + MyBatis-Plus + MySQL 8 + ZXing + ffmpeg + Flying Saucer。
 
 ## 环境要求
 
 - JDK 8 及以上
 - Maven 3.6+
 - MySQL 8.0（本地或内网）
+- ffmpeg（本项目默认路径 `E:/ffmpeg/bin/ffmpeg.exe`，可在 `application.yml` 修改）
 
 ## 快速开始
 
-1. **改数据库账号密码**：编辑 `src/main/resources/application.yml` 中 `spring.datasource.username/password`（默认 `root` / `123456`）。
+1. **提供数据库账号密码**：设置环境变量 `TPJY_DB_USER`、`TPJY_DB_PASSWORD`（未设置时回退为 `root` / `123456`）。
 2. **启动**（首次会自动建库 `tpjy` 并执行建表脚本、初始化演示数据）：
 
    ```bash
-   mvn spring-boot:run
+   mvn -s mvn-settings.xml spring-boot:run
    ```
 
 3. **访问**：浏览器打开 `http://localhost:8080/login`
@@ -39,16 +42,21 @@ code/
     │   ├── TpjyApplication.java       # 启动类（@MapperScan）
     │   ├── common/                    # Result / 异常 / 常量 / 登录态
     │   ├── config/                    # 拦截器 / 配置 / 数据初始化
-    │   ├── entity/                    # 8 张表实体
+    │   ├── entity/                    # 8 张现有实体（schema 共 9 张表）
     │   ├── mapper/                    # MyBatis-Plus Mapper
-    │   ├── service/                   # 业务（判定引擎已实现）
-    │   │   └── ocr/                   # OCR 预留接口 + Noop 实现
-    │   └── controller/                # 登录 / 首页 / 三角色控制器
+    │   ├── service/                   # 判定、识别、查询、曲线、PDF、审计
+    │   │   ├── frame/                 # ffmpeg 抽帧
+    │   │   ├── qr/                    # ZXing 二维码识别
+    │   │   ├── ocr/                   # OCR 预留接口 + Noop 实现
+    │   │   ├── audit/                 # 数据库/文件审计落地
+    │   │   └── video/                 # 视频落盘与 7 天保留
+    │   ├── cli/                       # 无界面识别与演示视频入口
+    │   └── controller/                # 登录、检验人员、复核人员控制器
     └── resources/
         ├── application.yml
         ├── sql/schema.sql
         ├── static/css/app.css
-        └── templates/                 # 页面（登录已可用，其余为占位）
+        └── templates/                 # 登录、导入/核对、查询、曲线、PDF 模板
 ```
 
 ## 关键约定（编码前先定稿，见《代码落地实施方案》）
@@ -58,16 +66,36 @@ code/
 - **限度**：标称值 ± 0.05%，用 BigDecimal 实时计算，绝不引用写死值
 - **OCR**：`OcrService` 接口 + `NoopOcrService` 默认实现（返回 null → 人工补录兜底）
 
-## 当前进度与下一步（迭代计划）
+## 当前进度
 
 - ✅ 迭代 0：可运行骨架（登录 + 权限拦截 + 建表 + 演示数据）
-- ⬜ 迭代 1：视频导入（二维码）+ 校验记录管理 + 判定引擎接入
-- ⬜ 迭代 2：复核确认 + 查询/曲线/PDF + 天平模板维护 + 留痕审计
+- ✅ 甲 1.3.2：视频上传/落盘、ffmpeg 抽帧、ZXing 人员/天平二维码、自动查对、9 次示值人工补录、提示定位
+- ✅ 甲 1.3.5：限度实时计算、9 次逐项判定、前置条件一票否决、1% 较大误差预填、单/双量程归组
+- ✅ 甲 1.3.6：按天平/日期查询、曲线数据与 PNG、复核记录 PDF 导出
+- ✅ 甲 1.3.8：五类审计 + 登录日志、审计双落地、视频 7 天自动清理与删除留痕
+- 🟡 乙 1.3.3 / 1.3.4：记录提交、复核确认尚待实现；当前查询页只读取数据库中已有记录
+- 🟡 乙 1.3.1 / 1.3.7：登录骨架可用，账号增删、主数据/模板维护仍待实现
 - ⬜ 迭代 3：三视频系统测试 + 部署 + 使用说明
+
+`OcrService` 按 SRS 保持预留接口；默认 `NoopOcrService` 不读数字，导入页可人工补录 9 个示值。
+因此二维码识别与示值人工补录链路可用；“9 次示值全自动 OCR”仍不是当前实现能力。
+
+## 自动化验证
+
+```bash
+mvn -s mvn-settings.xml test
+```
+
+2026-10-19 验证结果：**34 tests, 0 failures, 0 errors**。
+测试使用 H2 内存数据库启动完整 Spring 上下文，并实际调用上传接口、ffmpeg、QR 识别、查询、曲线和 PDF 下载；不依赖本机 MySQL 密码。
+
+详细交接、接口边界和验收注意点见 `docs/甲模块交付说明.md`。
+
+数据库每日备份脚本：`scripts/backup-tpjy.ps1`（通过 `TPJY_DB_USER` / `TPJY_DB_PASSWORD` 提供凭据）。
 
 ## 打包部署
 
 ```bash
-mvn clean package
+mvn -s mvn-settings.xml clean package
 java -jar target/tpjy-1.0.0.jar
 ```

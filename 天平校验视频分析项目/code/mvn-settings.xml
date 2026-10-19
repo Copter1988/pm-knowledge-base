@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  项目内 Maven 配置：直连 Maven Central（repo1.maven.org），不使用 aliyun 镜像。
+  本机 maven.aliyun.com 与 repo.maven.apache.org 均无法解析（UnknownHost），
+  而 repo1.maven.org 稳定可访问，故使用本文件。
+  用法：mvn -s mvn-settings.xml clean package
+  IDEA 用法：Settings → Build Tools → Maven → User settings file 选本文件。
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <localRepository>C:\Users\10340\.m2\repository</localRepository>
+
+    <mirrors>
+        <mirror>
+            <id>central-direct</id>
+            <mirrorOf>central</mirrorOf>
+            <name>Maven Central（repo1，替代 aliyun）</name>
+            <url>https://repo1.maven.org/maven2</url>
+        </mirror>
+    </mirrors>
+
+    <profiles>
+        <profile>
+            <id>direct-central</id>
+            <repositories>
+                <repository>
+                    <id>central-direct</id>
+                    <url>https://repo1.maven.org/maven2</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>central-direct</id>
+                    <url>https://repo1.maven.org/maven2</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>direct-central</activeProfile>
+    </activeProfiles>
+</settings>

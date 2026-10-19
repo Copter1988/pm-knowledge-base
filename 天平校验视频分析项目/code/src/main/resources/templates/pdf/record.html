@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<!--
+  校验记录导出 PDF 的模板（XHTML，供 Flying Saucer 渲染，故必须严格闭合）。
+  注意：按 SRS §3.3.2，测量时间「存库、不印在导出 PDF」，故本模板不输出 clock 字段。
+  页面（乙）也可以复用本模板做详情展示（去掉 PDF 专用样式即可）。
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>天平校验记录</title>
+    <style type="text/css">
+        @page { size: A4; margin: 16mm 14mm; }
+        body { font-family: 'TPJYFont'; font-size: 10pt; color: #222; }
+        h1 { font-size: 16pt; text-align: center; margin: 0 0 4pt 0; color: #1E3A5F; }
+        .sub { text-align: center; font-size: 9pt; color: #666; margin-bottom: 10pt; }
+        .sec { font-size: 11pt; font-weight: bold; color: #1E3A5F; margin: 10pt 0 4pt 0;
+               border-left: 3pt solid #1E3A5F; padding-left: 5pt; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 0.6pt solid #999; padding: 3pt 4pt; font-size: 9pt; }
+        th { background: #EEF3FA; font-weight: bold; }
+        .info td { border: none; padding: 2pt 4pt; font-size: 9.5pt; }
+        .label { color: #666; }
+        .center { text-align: center; }
+        .right { text-align: right; }
+        .pass { color: #1E8C46; font-weight: bold; }
+        .fail { color: #C82828; font-weight: bold; }
+        .remark { border: 0.6pt solid #999; padding: 6pt; min-height: 30pt; font-size: 9.5pt; }
+        .sign { margin-top: 14pt; }
+        .sign td { border: none; font-size: 10pt; }
+        .foot { margin-top: 10pt; font-size: 8pt; color: #888; }
+    </style>
+</head>
+<body>
+
+<h1>电子天平日常校验记录</h1>
+<div class="sub">天平校验视频分析系统 导出</div>
+
+<div class="sec">一、天平与校验信息</div>
+<table class="info">
+    <tr>
+        <td class="label" style="width:13%">记录号</td>
+        <td style="width:20%"><b th:text="${detail.recordNo}">-</b></td>
+        <td class="label" style="width:13%">天平编号</td>
+        <td style="width:20%"><b th:text="${detail.balanceCode}">-</b></td>
+        <td class="label" style="width:13%">视频号</td>
+        <td th:text="${detail.videoNo}">-</td>
+    </tr>
+    <tr>
+        <td class="label">科室</td>
+        <td th:text="${detail.dept}">-</td>
+        <td class="label">天平唯一号</td>
+        <td th:text="${detail.uniqueNo}">-</td>
+        <td class="label">量程 / 精度</td>
+        <td th:text="${detail.rangeText}">-</td>
+    </tr>
+    <tr>
+        <td class="label">校验日期</td>
+        <td th:text="${detail.checkDate}">-</td>
+        <td class="label">检验人员</td>
+        <td th:text="${detail.person}">-</td>
+        <td class="label">记录状态</td>
+        <td th:text="${detail.status}">-</td>
+    </tr>
+</table>
+
+<div class="sec">二、校验前置条件</div>
+<table>
+    <tr>
+        <th style="width:25%">清洁符合要求</th>
+        <th style="width:25%">水平调节到位</th>
+        <th style="width:25%">内部校正是否通过</th>
+        <th style="width:25%">一票否决</th>
+    </tr>
+    <tr class="center">
+        <td th:text="${detail.cleanText}">-</td>
+        <td th:text="${detail.levelText}">-</td>
+        <td th:text="${detail.internalCalibOk}">-</td>
+        <td th:if="${detail.judge != null and detail.judge.vetoedByPrecondition}" class="fail">是（前置条件不通过，判定不通过）</td>
+        <td th:if="${detail.judge == null or !detail.judge.vetoedByPrecondition}">否</td>
+    </tr>
+</table>
+
+<div class="sec">三、9 次示值与判定</div>
+<table>
+    <tr>
+        <th style="width:8%">序号</th>
+        <th style="width:8%">分组</th>
+        <th style="width:14%">标称值 (g)</th>
+        <th style="width:24%">限度 (1±0.05%) (g)</th>
+        <th style="width:18%">示值 (g)</th>
+        <th style="width:14%">偏差</th>
+        <th style="width:14%">判定</th>
+    </tr>
+    <tr th:each="d : ${detail.judge.details}">
+        <td class="center" th:text="${d.seq}">1</td>
+        <td class="center" th:text="${d.level}">L1</td>
+        <td class="right" th:text="${d.nominal}">-</td>
+        <td class="center">
+            <span th:text="${d.lower}">-</span>
+            <span> ~ </span>
+            <span th:text="${d.upper}">-</span>
+        </td>
+        <td class="right" th:text="${d.value}">未识别</td>
+        <td class="center" th:text="${d.deviationText}">-</td>
+        <td class="center" th:if="${d.value == null}">待补录</td>
+        <td class="center pass" th:if="${d.value != null and d.qualified}">合格</td>
+        <td class="center fail" th:if="${d.value != null and !d.qualified}">不合格</td>
+    </tr>
+</table>
+
+<div class="sec">四、结论与备注</div>
+<table>
+    <tr>
+        <th style="width:20%">外部校验结论</th>
+        <td style="width:30%" th:classappend="${detail.judge.qualified} ? 'pass' : 'fail'">
+            <b th:text="${detail.judge.resultText}">-</b>
+        </td>
+        <th style="width:20%">判定规则</th>
+        <td style="width:30%">任一示值超出（1±0.05%）L，或前置条件任一项不通过 → 不通过</td>
+    </tr>
+    <tr>
+        <th>不合格原因</th>
+        <td colspan="3">
+            <div th:if="${#lists.isEmpty(detail.judge.failReasons)}">无</div>
+            <div th:each="r : ${detail.judge.failReasons}" th:text="${r}">-</div>
+        </td>
+    </tr>
+</table>
+
+<div style="margin-top:6pt" class="label">备注（默认「无」；异常情况在此说明，如数值显示异常、无法稳定等）</div>
+<div class="remark" th:text="${detail.remark}">无</div>
+
+<div th:if="${not #lists.isEmpty(detail.traces)}">
+    <div class="sec">五、识别值改动留痕</div>
+    <table>
+        <tr>
+            <th style="width:20%">序号 / 项目</th>
+            <th>改动内容</th>
+        </tr>
+        <tr th:each="t : ${detail.traces}">
+            <td class="center">-</td>
+            <td th:text="${t}">-</td>
+        </tr>
+    </table>
+</div>
+
+<table class="sign">
+    <tr>
+        <td style="width:50%">检验人员签字：<span th:text="${detail.person}">-</span></td>
+        <td style="width:50%">复核确认人签字：<span th:text="${detail.reviewerName}">-</span></td>
+    </tr>
+</table>
+
+<div class="foot">
+    注：本记录由系统按 ±0.05% 规则实时计算限度后判定，未引用任何写死的限度值；
+    测量时间已存入数据库，按需求不在本导出件中打印。视频保留 7 天。
+</div>
+
+</body>
+</html>

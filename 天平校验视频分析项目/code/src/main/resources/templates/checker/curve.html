@@ -6,7 +6,24 @@
 <div class="container">
     <div class="card">
         <h2>称重值曲线</h2>
-        <p class="placeholder">TODO 迭代2：ECharts 折线，横轴示值序号 1~9，叠加限度上下限参考线。</p>
+        <p class="error" th:if="${error}" th:text="${error}"></p>
+        <div th:if="${curve != null}">
+            <p><strong th:text="${curve.recordNo}"></strong>
+                <span class="muted" th:text="|${curve.balanceCode} · ${curve.checkDate} · ${curve.resultText}|"></span></p>
+            <img class="curve-image" th:src="${curveImage}" alt="称重值曲线">
+            <table class="grid">
+                <tr><th>序号</th><th>组</th><th>示值(g)</th><th>下限(g)</th><th>上限(g)</th><th>判定</th></tr>
+                <tr th:each="p : ${curve.points}">
+                    <td th:text="${p.seq}"></td>
+                    <td th:text="${p.level}"></td>
+                    <td th:text="${p.value}"></td>
+                    <td th:text="${p.lower}"></td>
+                    <td th:text="${p.upper}"></td>
+                    <td th:text="${p.qualified} ? '合格' : '不合格'"></td>
+                </tr>
+            </table>
+        </div>
+        <p class="placeholder" th:if="${curve == null && error == null}">请从记录查询页选择一个记录查看曲线。</p>
     </div>
 </div>
 </body>

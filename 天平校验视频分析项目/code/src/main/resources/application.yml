@@ -6,8 +6,10 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # createDatabaseIfNotExist=true 会在首次连接时自动建库 tpjy
     url: jdbc:mysql://localhost:3306/tpjy?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-    username: root
-    password: "123456"
+    username: ${TPJY_DB_USER:root}
+    password: ${TPJY_DB_PASSWORD:123456}
+    hikari:
+      initialization-fail-timeout: -1
   sql:
     init:
       mode: always                 # 每次启动自动执行 schema.sql（幂等）
@@ -30,5 +32,14 @@ mybatis-plus:
       id-type: auto
 
 app:
-  upload-dir: ./upload             # 视频/抽帧目录（相对运行目录）
-  video-retain-days: 7             # 视频保留 7 天
+  video-dir: ./upload/video
+  frame-dir: ./upload/frame
+  frame-extractor: ffmpeg
+  ffmpeg-path: E:/ffmpeg/bin/ffmpeg.exe
+  frame-interval: 1
+  recognize-timeout-seconds: 120
+  video-keep-days: 7
+  limit-rate: "0.0005"
+  big-deviation-rate: "0.01"
+  pdf-font-path: /fonts/simhei.ttf
+  cli-output-dir: ./out

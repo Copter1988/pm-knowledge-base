@@ -6,7 +6,52 @@
 <div class="container">
     <div class="card">
         <h2>校验结果核对</h2>
-        <p class="placeholder">TODO 迭代1：核对 9 次示值、改值留痕、前置条件、备注、确认并提交复核。</p>
+        <p class="placeholder" th:if="${result == null}">请先导入视频。</p>
+        <div th:if="${result != null}">
+            <p>
+                <span class="badge" th:classappend="${result.canCreateRecord()} ? 'ok' : 'bad'"
+                      th:text="${result.canCreateRecord()} ? '可进入记录核对' : '存在阻断问题'"></span>
+                <span class="muted" th:text="|识别耗时 ${result.elapsedMillis} ms · 抽帧 ${result.frameCount} 帧 · ${result.ocrImpl}|"></span>
+            </p>
+
+            <table class="grid">
+                <tr><th>人员二维码</th><td th:text="${result.personFromQr ?: '未识别'}"></td>
+                    <th>最终人员</th><td th:text="${result.effectivePersonName ?: '未确定'}"></td></tr>
+                <tr><th>天平二维码</th><td th:text="${result.balanceFromQr ?: '未识别'}"></td>
+                    <th>最终天平</th><td th:text="${result.effectiveBalanceCode ?: '未确定'}"></td></tr>
+                <tr><th>校验日期</th><td th:text="${result.checkDate ?: '-'}"></td>
+                    <th>视频号</th><td th:text="${result.videoNo ?: '由记录管理模块生成'}"></td></tr>
+            </table>
+
+            <video class="video" th:if="${videoUrl != null}" th:src="${videoUrl}" controls preload="metadata"></video>
+
+            <h3>自动提示</h3>
+            <p class="placeholder" th:if="${#lists.isEmpty(result.alerts)}">无自动提示。</p>
+            <table class="grid" th:unless="${#lists.isEmpty(result.alerts)}">
+                <tr><th>级别</th><th>类型</th><th>内容</th><th>视频时间</th></tr>
+                <tr th:each="a : ${result.alerts}">
+                    <td th:text="${a.level}"></td>
+                    <td th:text="${a.type}"></td>
+                    <td th:text="${a.message}"></td>
+                    <td><a th:if="${a.second != null}" th:href="${videoUrl + '#t=' + a.second}" th:text="${a.clock}"></a></td>
+                </tr>
+            </table>
+
+            <h3>9 次示值</h3>
+            <table class="grid">
+                <tr><th>序号</th><th>组</th><th>标称值(g)</th><th>示值(g)</th><th>时间</th><th>人工改动</th></tr>
+                <tr th:each="r : ${result.readings}">
+                    <td th:text="${r.seq}"></td>
+                    <td th:text="${r.level}"></td>
+                    <td th:text="${r.nominal ?: '-'}"></td>
+                    <td th:text="${r.value ?: '待补录'}"></td>
+                    <td th:text="${r.clock ?: '-'}"></td>
+                    <td th:text="${r.changed} ? '是' : '否'"></td>
+                </tr>
+            </table>
+            <p class="notice">甲的识别链到此结束。后续“人工改值留痕、前置条件、提交复核”由记录管理模块（1.3.3，乙）接续。</p>
+            <a class="btn" th:href="@{/checker/new}">再导入一个视频</a>
+        </div>
     </div>
 </div>
 </body>

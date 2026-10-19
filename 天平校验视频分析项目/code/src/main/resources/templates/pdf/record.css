@@ -1,0 +1,20 @@
+@page { size: A4; margin: 16mm 14mm; }
+body { font-family: 'TPJYFont'; font-size: 10pt; color: #222; }
+h1 { font-size: 16pt; text-align: center; margin: 0 0 4pt 0; color: #1E3A5F; }
+.sub { text-align: center; font-size: 9pt; color: #666; margin-bottom: 10pt; }
+.sec { font-size: 11pt; font-weight: bold; color: #1E3A5F; margin: 10pt 0 4pt 0;
+
+       border-left: 3pt solid #1E3A5F; padding-left: 5pt; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 0.6pt solid #999; padding: 3pt 4pt; font-size: 9pt; }
+th { background: #EEF3FA; font-weight: bold; }
+.info td { border: none; padding: 2pt 4pt; font-size: 9.5pt; }
+.label { color: #666; }
+.center { text-align: center; }
+.right { text-align: right; }
+.pass { color: #1E8C46; font-weight: bold; }
+.fail { color: #C82828; font-weight: bold; }
+.remark { border: 0.6pt solid #999; padding: 6pt; min-height: 30pt; font-size: 9.5pt; }
+.sign { margin-top: 14pt; }
+.sign td { border: none; font-size: 10pt; }
+.foot { margin-top: 10pt; font-size: 8pt; color: #888; }

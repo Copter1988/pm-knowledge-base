@@ -1,87 +1,173 @@
 package com.tpjy.service;
 
+import com.tpjy.common.Constants;
+import com.tpjy.dto.JudgeResult;
+import com.tpjy.dto.RecognizedReading;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * 校验判定引擎单元测试（对应 SRS §3.1.5 核心业务规则）。
- * 纯单元测试，不加载 Spring 上下文、不依赖数据库。
+ * 判定引擎测试（对应 AC-04：判定与业务规则一致）。
+ * 覆盖：限度实时计算、逐示值判定、一票否决、较大误差预填、双量程归组。
  */
 class JudgeServiceTest {
 
     private final JudgeService judge = new JudgeService();
 
-    @Test
-    void 归组_按顺序L1到L3() {
-        assertEquals("L1", judge.groupLevel(1));
-        assertEquals("L1", judge.groupLevel(3));
-        assertEquals("L2", judge.groupLevel(4));
-        assertEquals("L2", judge.groupLevel(6));
-        assertEquals("L3", judge.groupLevel(7));
-        assertEquals("L3", judge.groupLevel(9));
+    private static BigDecimal bd(String v) {
+        return new BigDecimal(v);
     }
 
     @Test
-    void 限度_200g_应为1999000到2001000() {
-        BigDecimal n = new BigDecimal("200");
-        assertEquals(0, new BigDecimal("199.9000").compareTo(judge.lowerLimit(n).setScale(4)));
-        assertEquals(0, new BigDecimal("200.1000").compareTo(judge.upperLimit(n).setScale(4)));
+    @DisplayName("限度实时计算：200g → 199.9000 ~ 200.1000；50g → 49.9750 ~ 50.0250")
+    void limits() {
+        assertEquals(0, bd("199.9000").compareTo(judge.lowerLimit(bd("200"))));
+        assertEquals(0, bd("200.1000").compareTo(judge.upperLimit(bd("200"))));
+        // 界面原型里的 50 g 行：49.9750 ~ 50.0250（不是 xlsx 里写错的 19.9750~20.0250）
+        assertEquals(0, bd("49.9750").compareTo(judge.lowerLimit(bd("50"))));
+        assertEquals(0, bd("50.0250").compareTo(judge.upperLimit(bd("50"))));
     }
 
     @Test
-    void 限度_50g_模板写死值不可信() {
-        // SRS 特别指出：xlsx 中 50g 限度写成 19.9750~20.0250 是错的，正确应为 49.9750~50.0250
-        BigDecimal n = new BigDecimal("50");
-        assertEquals(0, new BigDecimal("49.9750").compareTo(judge.lowerLimit(n).setScale(4)));
-        assertEquals(0, new BigDecimal("50.0250").compareTo(judge.upperLimit(n).setScale(4)));
+    @DisplayName("边界值：恰好等于上下限算合格")
+    void boundary() {
+        assertTrue(judge.within(bd("199.9000"), bd("200")));
+        assertTrue(judge.within(bd("200.1000"), bd("200")));
+        assertFalse(judge.within(bd("199.8999"), bd("200")));
+        assertFalse(judge.within(bd("200.1001"), bd("200")));
     }
 
     @Test
-    void 逐示值_边界值含等于() {
-        assertTrue(judge.within(new BigDecimal("200.1000"), new BigDecimal("200")));
-        assertTrue(judge.within(new BigDecimal("199.9000"), new BigDecimal("200")));
-        assertFalse(judge.within(new BigDecimal("200.1001"), new BigDecimal("200")));
-        assertFalse(judge.within(new BigDecimal("199.8999"), new BigDecimal("200")));
+    @DisplayName("归组：seq 1~3→L1、4~6→L2、7~9→L3（与量程无关）")
+    void grouping() {
+        assertEquals(Constants.LEVEL_L1, judge.groupLevel(1));
+        assertEquals(Constants.LEVEL_L1, judge.groupLevel(3));
+        assertEquals(Constants.LEVEL_L2, judge.groupLevel(4));
+        assertEquals(Constants.LEVEL_L2, judge.groupLevel(6));
+        assertEquals(Constants.LEVEL_L3, judge.groupLevel(7));
+        assertEquals(Constants.LEVEL_L3, judge.groupLevel(9));
     }
 
     @Test
-    void 总体判定_前置条件一票否决() {
-        // 示值全部合格，但清洁不过 → 不通过
-        boolean pass = judge.judge(false, true, "是",
-                Arrays.asList(v("200.0001"), v("199.9999"), v("200.0002")),
-                Arrays.asList(v("200"), v("200"), v("200")));
-        assertFalse(pass);
+    @DisplayName("前置条件一票否决：清洁不通过 → 不合格，且注明原因")
+    void veto() {
+        List<RecognizedReading> readings = goodReadings();
+        JudgeResult r = judge.judgeRecord(readings, bd("200"), bd("50"), bd("10"),
+                false, true, Constants.CALIB_YES);
+        assertFalse(r.isQualified());
+        assertTrue(r.isVetoedByPrecondition());
+        assertTrue(r.getFailReasons().get(0).contains("清洁"));
+        assertEquals("不合格", r.getResultText());
     }
 
     @Test
-    void 总体判定_任一示值超限即不通过() {
-        boolean pass = judge.judge(true, true, "是",
-                Arrays.asList(v("200.0001"), v("200.5000"), v("200.0002")),
-                Arrays.asList(v("200"), v("200"), v("200")));
-        assertFalse(pass);
+    @DisplayName("内部校正 NA 不算不通过（可以合格）")
+    void calibNaIsNotFail() {
+        List<RecognizedReading> readings = goodReadings();
+        JudgeResult r = judge.judgeRecord(readings, bd("200"), bd("50"), bd("10"),
+                true, true, Constants.CALIB_NA);
+        assertTrue(r.isQualified());
     }
 
     @Test
-    void 总体判定_全部合格() {
-        boolean pass = judge.judge(true, true, "是",
-                Arrays.asList(v("200.0001"), v("199.9999"), v("200.0002")),
-                Arrays.asList(v("200"), v("200"), v("200")));
-        assertTrue(pass);
+    @DisplayName("逐示值判定：L3 第 8 次超限 → 不合格，并注明 L3 砝码不合格")
+    void oneBadReading() {
+        List<RecognizedReading> readings = goodReadings();
+        readings.get(7).setValue(bd("10.0051")); // L3 限度 9.9950~10.0050
+        JudgeResult r = judge.judgeRecord(readings, bd("200"), bd("50"), bd("10"),
+                true, true, Constants.CALIB_YES);
+        assertFalse(r.isQualified());
+        boolean mentionsL3 = false;
+        for (String s : r.getFailReasons()) {
+            if (s.contains("L3")) {
+                mentionsL3 = true;
+            }
+        }
+        assertTrue(mentionsL3, "应注明是哪个砝码不合格：" + r.getFailReasons());
     }
 
     @Test
-    void 较大误差_超阈值才预填() {
-        // 200g 的 1% = 2g；偏差 2.1g 超阈值
-        assertNotNull(judge.bigDeviationRemark(1, new BigDecimal("202.1"), new BigDecimal("200")));
-        // 偏差 1.9g 未超 1%
-        assertNull(judge.bigDeviationRemark(1, new BigDecimal("201.9"), new BigDecimal("200")));
+    @DisplayName("较大误差：偏差 > 1% 预填备注，且不影响 ±0.05% 判定结论")
+    void bigDeviation() {
+        String remark = judge.bigDeviationRemark(3, bd("202.5"), bd("200"));
+        assertNotNull(remark);
+        assertTrue(remark.contains("1.25%"));
+        assertTrue(remark.contains("必要时报修"));
     }
 
-    private static BigDecimal v(String s) {
-        return new BigDecimal(s);
+    @Test
+    @DisplayName("全合格：结论合格、备注默认无")
+    void allPass() {
+        JudgeResult r = judge.judgeRecord(goodReadings(), bd("200"), bd("50"), bd("10"),
+                true, true, Constants.CALIB_YES);
+        assertTrue(r.isQualified());
+        assertEquals("合格", r.getResultText());
+        assertEquals(Constants.DEFAULT_REMARK, r.getRemarkPrefill());
+        assertEquals(9, r.getDetails().size());
+    }
+
+    @Test
+    @DisplayName("示值缺失不通过：未识别到应提示补录，不能算合格")
+    void missingValue() {
+        List<RecognizedReading> readings = goodReadings();
+        readings.get(0).setValue(null);
+        JudgeResult r = judge.judgeRecord(readings, bd("200"), bd("50"), bd("10"),
+                true, true, Constants.CALIB_YES);
+        assertFalse(r.isQualified());
+    }
+
+    @Test
+    @DisplayName("必须恰好提交 9 条示值：空列表不能被判为合格")
+    void emptyReadingsNeverQualified() {
+        JudgeResult r = judge.judgeRecord(new ArrayList<RecognizedReading>(),
+                bd("200"), bd("50"), bd("10"), true, true, Constants.CALIB_YES);
+        assertFalse(r.isQualified());
+        assertTrue(r.getFailReasons().get(0).contains("9 条"));
+    }
+
+    @Test
+    @DisplayName("内部校正未填写不能默认通过")
+    void missingCalibrationNeverQualified() {
+        JudgeResult r = judge.judgeRecord(goodReadings(), bd("200"), bd("50"), bd("10"),
+                true, true, null);
+        assertFalse(r.isQualified());
+        assertTrue(r.isVetoedByPrecondition());
+        assertTrue(r.getFailReasons().get(0).contains("内部校正"));
+    }
+
+    @Test
+    @DisplayName("示值编号超出 1~9 时拒绝归组")
+    void invalidSequenceRejected() {
+        assertThrows(IllegalArgumentException.class, () -> judge.groupLevel(0));
+        assertThrows(IllegalArgumentException.class, () -> judge.groupLevel(10));
+    }
+
+    /** 9 次全在限度内的样例（与界面原型图 3 的数据风格一致）。 */
+    private List<RecognizedReading> goodReadings() {
+        List<String> values = Arrays.asList(
+                "200.0006", "199.9998", "200.0011",
+                "50.0003", "49.9997", "50.0002",
+                "10.0001", "10.0000", "9.9999");
+        List<RecognizedReading> list = new ArrayList<RecognizedReading>();
+        for (int i = 0; i < values.size(); i++) {
+            RecognizedReading r = new RecognizedReading();
+            r.setSeq(i + 1);
+            r.setLevel(judge.groupLevel(i + 1));
+            r.setRawValue(values.get(i));
+            r.setValue(bd(values.get(i)));
+            list.add(r);
+        }
+        return list;
     }
 }

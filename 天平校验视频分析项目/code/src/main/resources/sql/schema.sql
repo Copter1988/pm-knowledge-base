@@ -108,3 +108,14 @@ CREATE TABLE IF NOT EXISTS audit_log (
   detail        VARCHAR(1000),
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 9. 记录呈现模板（FR-019，MVP：字段显隐/显示名/必填/顺序；字段本身不可增删）
+CREATE TABLE IF NOT EXISTS record_template (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  field_key   VARCHAR(50) NOT NULL,
+  field_label VARCHAR(50) NOT NULL,
+  visible     TINYINT DEFAULT 1,
+  required    TINYINT DEFAULT 0,
+  sort_no     INT     DEFAULT 0,
+  UNIQUE KEY uk_field_key (field_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
