@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <!--
   校验记录导出 PDF 的模板（XHTML，供 Flying Saucer 渲染，故必须严格闭合）。
-  注意：按 SRS §3.3.2，测量时间「存库、不印在导出 PDF」，故本模板不输出 clock 字段。
+  注意：更新后的记录表要求每次示值都显示测量时间，并保留天平原屏 g/mg 数值与单位。
   页面（乙）也可以复用本模板做详情展示（去掉 PDF 专用样式即可）。
 -->
 <html xmlns:th="http://www.thymeleaf.org">
@@ -81,19 +81,20 @@
     </tr>
 </table>
 
-<div class="sec">三、9 次示值与判定</div>
+<div class="sec">三、9 次示值与判定（实际显示值 + 测量时间；限值与判定单位为 g）</div>
 <table>
     <tr>
-        <th style="width:8%">序号</th>
+        <th style="width:9%">次别</th>
         <th style="width:8%">分组</th>
-        <th style="width:14%">标称值 (g)</th>
-        <th style="width:24%">限度 (1±0.05%) (g)</th>
-        <th style="width:18%">示值 (g)</th>
-        <th style="width:14%">偏差</th>
-        <th style="width:14%">判定</th>
+        <th style="width:12%">标称值 (g)</th>
+        <th style="width:20%">限度 (1±0.05%) (g)</th>
+        <th style="width:14%">天平实际显示</th>
+        <th style="width:12%">换算值 (g)</th>
+        <th style="width:13%">测量时间</th>
+        <th style="width:12%">判定</th>
     </tr>
     <tr th:each="d : ${detail.judge.details}">
-        <td class="center" th:text="${d.seq}">1</td>
+        <td class="center" th:text="${d.level + '-' + ((d.seq - 1) % 3 + 1)}">L1-1</td>
         <td class="center" th:text="${d.level}">L1</td>
         <td class="right" th:text="${d.nominal}">-</td>
         <td class="center">
@@ -101,8 +102,9 @@
             <span> ~ </span>
             <span th:text="${d.upper}">-</span>
         </td>
-        <td class="right" th:text="${d.value}">未识别</td>
-        <td class="center" th:text="${d.deviationText}">-</td>
+        <td class="center" th:text="${d.displayText}">未识别</td>
+        <td class="right" th:text="${d.value}">-</td>
+        <td class="center" th:text="${d.measureTime}">-</td>
         <td class="center" th:if="${d.value == null}">待补录</td>
         <td class="center pass" th:if="${d.value != null and d.qualified}">合格</td>
         <td class="center fail" th:if="${d.value != null and !d.qualified}">不合格</td>
@@ -153,8 +155,8 @@
 </table>
 
 <div class="foot">
-    注：本记录由系统按 ±0.05% 规则实时计算限度后判定，未引用任何写死的限度值；
-    测量时间已存入数据库，按需求不在本导出件中打印。视频保留 7 天。
+    注：测量示值按天平实际显示数值和单位录入；限度、偏差与合格判定统一换算为 g。
+    本记录由系统按 ±0.05% 规则实时计算限度后判定，未引用任何写死的限度值。视频保留 7 天。
 </div>
 
 </body>

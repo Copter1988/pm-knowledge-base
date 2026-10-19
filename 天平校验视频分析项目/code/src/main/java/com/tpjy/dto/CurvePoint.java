@@ -2,7 +2,7 @@ package com.tpjy.dto;
 
 import java.math.BigDecimal;
 
-/** 曲线上的一个点（横轴 = 示值序号 1~9）。 */
+/** 趋势图中的一个测量点（L1/L2/L3 各 3 点）。 */
 public class CurvePoint {
 
     private int seq;
@@ -12,7 +12,11 @@ public class CurvePoint {
     private BigDecimal lower;
     private BigDecimal upper;
     private boolean qualified;
-    /** 该点对应的视频时间点（查询页显示；导出 PDF 不打印）。 */
+    /** 天平实际显示值和单位，如 20000.2 mg。 */
+    private String displayText;
+    /** 测量时间（yyyy-MM-dd HH:mm）。 */
+    private String measureTime;
+    /** 该点对应的视频时间点，用于回放定位。 */
     private String clock;
 
     public int getSeq() {
@@ -77,5 +81,21 @@ public class CurvePoint {
 
     public void setClock(String clock) {
         this.clock = clock;
+    }
+
+    public String getDisplayText() {
+        return displayText;
+    }
+
+    public void setDisplayText(String displayText) {
+        this.displayText = displayText;
+    }
+
+    public String getMeasureTime() {
+        return measureTime;
+    }
+
+    public void setMeasureTime(String measureTime) {
+        this.measureTime = measureTime;
     }
 }

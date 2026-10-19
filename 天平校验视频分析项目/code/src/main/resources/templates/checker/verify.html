@@ -39,13 +39,14 @@
 
             <h3>9 次示值</h3>
             <table class="grid">
-                <tr><th>序号</th><th>组</th><th>标称值(g)</th><th>示值(g)</th><th>时间</th><th>人工改动</th></tr>
+                <tr><th>次别</th><th>组</th><th>标称值(g)</th><th>天平实际显示</th><th>换算值(g)</th><th>测量时间</th><th>人工改动</th></tr>
                 <tr th:each="r : ${result.readings}">
-                    <td th:text="${r.seq}"></td>
+                    <td th:text="${r.level + '-' + ((r.seq - 1) % 3 + 1)}"></td>
                     <td th:text="${r.level}"></td>
                     <td th:text="${r.nominal ?: '-'}"></td>
-                    <td th:text="${r.value ?: '待补录'}"></td>
-                    <td th:text="${r.clock ?: '-'}"></td>
+                    <td th:text="${r.rawValue == null ? '待补录' : r.rawValue + ' ' + r.displayUnit}"></td>
+                    <td th:text="${r.value ?: '-'}"></td>
+                    <td th:text="${r.measureTime ?: '-'}"></td>
                     <td th:text="${r.changed} ? '是' : '否'"></td>
                 </tr>
             </table>

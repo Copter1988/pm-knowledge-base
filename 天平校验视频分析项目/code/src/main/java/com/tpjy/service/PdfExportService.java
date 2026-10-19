@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,7 +24,8 @@ import java.util.List;
  * <p>中文字体：PDF 必须内嵌字体才能显示中文，解析顺序见 resources/fonts/README.txt；
  * 找不到字体时 PDF 仍会生成，但中文可能显示为方框，控制台打印警告。
  *
- * <p>按 SRS §3.3.2：仅复核通过的记录可导出；测量时间存库但**不印在 PDF 里**。
+ * <p>按更新后的记录表要求：仅复核通过的记录可导出；每次示值均显示测量时间，
+ * 示值保留天平实际显示单位和数值，限值与判定统一换算为 g。
  */
 public class PdfExportService {
 
@@ -93,68 +95,61 @@ public class PdfExportService {
         sb.append("<h1>电子天平日常校验记录</h1>");
         sb.append("<div class=\"sub\">天平校验视频分析系统 导出</div>");
 
-        sb.append("<div class=\"sec\">一、天平与校验信息</div>");
-        sb.append("<table class=\"info\"><tr>");
-        sb.append(info("记录号", e(d.getRecordNo())));
-        sb.append(info("天平编号", e(d.getBalanceCode())));
-        sb.append(info("视频号", e(d.getVideoNo())));
-        sb.append("</tr><tr>");
-        sb.append(info("科室", e(d.getDept())));
-        sb.append(info("天平唯一号", e(d.getUniqueNo())));
-        sb.append(info("量程 / 精度", e(d.getRangeText())));
-        sb.append("</tr><tr>");
-        sb.append(info("校验日期", e(d.getCheckDate())));
-        sb.append(info("检验人员", e(d.getPerson())));
-        sb.append(info("记录状态", e(d.getStatus())));
-        sb.append("</tr></table>");
-
-        sb.append("<div class=\"sec\">二、校验前置条件</div>");
-        sb.append("<table><tr>");
-        sb.append("<th>清洁符合要求</th><th>水平调节到位</th><th>内部校正是否通过</th><th>一票否决</th>");
-        sb.append("</tr><tr class=\"center\">");
-        sb.append("<td>").append(e(d.getCleanText())).append("</td>");
-        sb.append("<td>").append(e(d.getLevelText())).append("</td>");
-        sb.append("<td>").append(e(d.getInternalCalibOk())).append("</td>");
-        if (d.getJudge().isVetoedByPrecondition()) {
-            sb.append("<td class=\"fail\">是（前置条件不通过，判定不通过）</td>");
-        } else {
-            sb.append("<td>否</td>");
-        }
-        sb.append("</tr></table>");
-
-        sb.append("<div class=\"sec\">三、9 次示值与判定</div>");
-        sb.append("<table><tr>")
-                .append("<th style=\"width:8%\">序号</th>")
-                .append("<th style=\"width:8%\">分组</th>")
-                .append("<th style=\"width:14%\">标称值 / g</th>")
-                .append("<th style=\"width:24%\">限度 (1±0.05%) / g</th>")
-                .append("<th style=\"width:16%\">示值 / g</th>")
-                .append("<th style=\"width:13%\">偏差</th>")
-                .append("<th style=\"width:17%\">判定</th>")
-                .append("</tr>");
-        for (ReadingJudge r : d.getJudge().getDetails()) {
-            sb.append("<tr>");
-            sb.append("<td class=\"center\">").append(r.getSeq()).append("</td>");
-            sb.append("<td class=\"center\">").append(e(r.getLevel())).append("</td>");
-            sb.append("<td class=\"right\">").append(e(plain(r.getNominal()))).append("</td>");
-            sb.append("<td class=\"center\">").append(e(plain(r.getLower()))).append(" ~ ")
-                    .append(e(plain(r.getUpper()))).append("</td>");
-            sb.append("<td class=\"right\">")
-                    .append(r.getValue() == null ? "未识别" : e(r.getValue().toPlainString()))
-                    .append("</td>");
-            sb.append("<td class=\"center\">").append(e(r.getDeviationText())).append("</td>");
-            if (r.getValue() == null) {
-                sb.append("<td class=\"center\">待补录</td>");
-            } else if (r.isQualified()) {
-                sb.append("<td class=\"center pass\">合格</td>");
-            } else {
-                sb.append("<td class=\"center fail\">不合格</td>");
-            }
-            sb.append("</tr>");
-        }
+        sb.append("<table class=\"record\">");
+        sb.append("<tr><th>科室</th><td>").append(e(d.getDept())).append("</td>");
+        sb.append("<th>天平编号</th><td>").append(e(d.getBalanceCode())).append("</td>");
+        sb.append("<th>天平唯一号</th><td>").append(e(d.getUniqueNo())).append("</td></tr>");
+        sb.append("<tr><th>Max / d</th><td colspan=\"3\">").append(e(d.getRangeText())).append("</td>");
+        sb.append("<th>校验日期</th><td>").append(e(d.getCheckDate())).append("</td></tr>");
+        sb.append("<tr><th>记录号</th><td>").append(e(d.getRecordNo())).append("</td>");
+        sb.append("<th>视频号</th><td>").append(e(d.getVideoNo())).append("</td>");
+        sb.append("<th>记录状态</th><td>").append(e(d.getStatus())).append("</td></tr>");
+        sb.append("<tr><th>清洁</th><td>").append(e(d.getCleanText())).append("</td>");
+        sb.append("<th>水平调节</th><td>").append(e(d.getLevelText())).append("</td>");
+        sb.append("<th>内部校正是否通过</th><td>").append(e(d.getInternalCalibOk())).append("</td></tr>");
         sb.append("</table>");
 
-        sb.append("<div class=\"sec\">四、结论与备注</div>");
+        sb.append("<div class=\"sec\">校验数据（实际显示值 + 测量时间；限值与判定单位为 g）</div>");
+        String[] levels = new String[]{"L1", "L2", "L3"};
+        for (String level : levels) {
+            List<ReadingJudge> group = new ArrayList<ReadingJudge>();
+            for (ReadingJudge r : d.getJudge().getDetails()) {
+                if (level.equals(r.getLevel())) {
+                    group.add(r);
+                }
+            }
+            if (group.isEmpty()) {
+                continue;
+            }
+            ReadingJudge head = group.get(0);
+            sb.append("<table class=\"record\">");
+            sb.append("<tr><th class=\"group\" colspan=\"6\">").append(level).append(" 砝码</th></tr>");
+            sb.append("<tr><th>砝码唯一号</th><td>").append(e(d.getWeightBoxNo())).append("</td>");
+            sb.append("<th>标称质量值(g)</th><td>").append(e(plain(head.getNominal()))).append("</td>");
+            sb.append("<th>限度(1±0.05%, g)</th><td>").append(e(plain(head.getLower())))
+                    .append(" ~ ").append(e(plain(head.getUpper()))).append("</td></tr>");
+            sb.append("<tr><th>次别</th><th colspan=\"2\">测量示值（天平实际显示）</th>")
+                    .append("<th>换算示值(g)</th><th>测量时间</th><th>单次判定</th></tr>");
+            for (ReadingJudge r : group) {
+                sb.append("<tr><td class=\"center\">").append(level).append("-").append(r.getSeq() % 3 == 0 ? 3 : r.getSeq() % 3).append("</td>");
+                sb.append("<td colspan=\"2\" class=\"center\">").append(e(r.getDisplayText())).append("</td>");
+                sb.append("<td class=\"right\">")
+                        .append(r.getValue() == null ? "-" : e(plain(r.getValue()))).append("</td>");
+                sb.append("<td class=\"center\">").append(e(r.getMeasureTime())).append("</td>");
+                if (r.getValue() == null) {
+                    sb.append("<td class=\"center\">待补录</td>");
+                } else if (r.isQualified()) {
+                    sb.append("<td class=\"center pass\">合格</td>");
+                } else {
+                    sb.append("<td class=\"center fail\">不合格（偏差 ")
+                            .append(e(r.getDeviationText())).append("）</td>");
+                }
+                sb.append("</tr>");
+            }
+            sb.append("</table>");
+        }
+
+        sb.append("<div class=\"sec\">结论与备注</div>");
         sb.append("<table><tr><th style=\"width:20%\">外部校验结论</th>");
         sb.append("<td style=\"width:30%\" class=\"")
                 .append(d.getJudge().isQualified() ? "pass" : "fail")
@@ -188,8 +183,8 @@ public class PdfExportService {
         sb.append("<td style=\"width:50%\">复核确认人签字：").append(e(d.getReviewerName())).append("</td>");
         sb.append("</tr></table>");
 
-        sb.append("<div class=\"foot\">注：本记录由系统按 ±0.05% 规则实时计算限度后判定，未引用任何写死的限度值；")
-                .append("测量时间已存入数据库，按需求约定不在本导出件中打印。视频保留 7 天。</div>");
+        sb.append("<div class=\"foot\">注：测量示值按天平实际显示数值和单位录入；限度、偏差与合格判定统一换算为 g，")
+                .append("限度由系统按 ±0.05% 实时计算，未引用表格中的写死值。视频保留 7 天。</div>");
 
         sb.append("</body></html>");
         return sb.toString();

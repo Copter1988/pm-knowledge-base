@@ -4,6 +4,7 @@ import com.tpjy.common.Constants;
 import com.tpjy.dto.CurveData;
 import com.tpjy.dto.CurvePoint;
 import com.tpjy.dto.JudgeResult;
+import com.tpjy.dto.MassReading;
 import com.tpjy.dto.RecordDetail;
 import com.tpjy.dto.RecognizedReading;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -83,21 +85,20 @@ class ExportServiceTest {
     }
 
     @Test
-    @DisplayName("导出件不得打印测量时间（SRS §3.3.2）")
-    void noMeasureTimeInExport() {
+    @DisplayName("导出记录表显示每次示值的测量时间、实际单位和换算克值")
+    void pdfShowsMeasureTimeAndActualUnit() {
         RecordDetail detail = sampleDetail();
-        // 曲线点上带测量时间 10:15 / 10:16
         detail.getCurve().getPoints().get(0).setClock("10:15");
         detail.getCurve().getPoints().get(1).setClock("10:16");
 
         String html = new PdfExportService("/fonts/simhei.ttf").buildHtml(detail);
 
-        assertFalse(html.contains("10:15"), "导出 HTML 不应出现测量时间");
-        assertFalse(html.contains("10:16"), "导出 HTML 不应出现测量时间");
-        assertFalse(html.toLowerCase().contains("measuretime"), "不应引用测量时间字段");
-        // 但应有结论与示值
+        assertTrue(html.contains("测量时间"), "记录表必须包含测量时间列");
+        assertTrue(html.contains("2026-06-29 10:15"), "应显示完整测量时间");
+        assertTrue(html.contains("50000.3 mg"), "应保留天平实际显示值和单位");
+        assertTrue(html.contains("50.0003"), "应同时显示换算后的克值");
+        assertFalse(html.contains("不在本导出件中打印"), "旧的不显示时间说明应删除");
         assertTrue(html.contains("不合格"));
-        assertTrue(html.contains("10.006"));
     }
 
     @Test
@@ -137,6 +138,7 @@ class ExportServiceTest {
         d.setBalanceCode("F001");
         d.setDept("化学室");
         d.setUniqueNo("SJS2605002");
+        d.setWeightBoxNo("FM2512921");
         d.setRangeText("Max 220 g · d 0.1 mg");
         d.setPrecisionText("0.1mg");
         d.setCheckDate("2026-06-29 10:13");
@@ -153,12 +155,16 @@ class ExportServiceTest {
 
     private JudgeResult judge(List<String> values) {
         List<RecognizedReading> list = new ArrayList<RecognizedReading>();
+        long base = 1782699300000L; // 2026-06-29 10:15
         for (int i = 0; i < values.size(); i++) {
             RecognizedReading r = new RecognizedReading();
             r.setSeq(i + 1);
             r.setLevel(judgeService.groupLevel(i + 1));
-            r.setRawValue(values.get(i));
-            r.setValue(new BigDecimal(values.get(i)));
+            MassReading mass = MassReading.parse(values.get(i));
+            r.setRawValue(mass.getDisplayValue().toPlainString());
+            r.setDisplayUnit(mass.getUnit());
+            r.setValue(mass.getGrams());
+            r.setMeasureTime(com.tpjy.util.TpjyUtils.formatDate(new Date(base + i * 60000L)));
             list.add(r);
         }
         return judgeService.judgeRecord(list, new BigDecimal("200"), new BigDecimal("50"),
@@ -169,7 +175,7 @@ class ExportServiceTest {
     private List<String> mixedValues() {
         return Arrays.asList(
                 "200.0006", "199.9998", "200.0011",
-                "50.0003", "49.9997", "50.0002",
-                "10.0060", "10.0000", "9.9999");
+                "50000.3mg", "49999.7mg", "50000.2mg",
+                "10006.0mg", "10000.0mg", "9999.9mg");
     }
 }

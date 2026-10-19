@@ -140,6 +140,7 @@ class WebApplicationSmokeTest {
                 "50.0002", "10.0001", "10.0000", "9.9999"};
         String[] levels = {"L1", "L1", "L1", "L2", "L2", "L2", "L3", "L3", "L3"};
         String[] nominals = {"200", "200", "200", "50", "50", "50", "10", "10", "10"};
+        Date base = new Date();
         for (int i = 0; i < 9; i++) {
             Reading reading = new Reading();
             reading.setRecordId(record.getId());
@@ -147,7 +148,14 @@ class WebApplicationSmokeTest {
             reading.setWeightLevel(levels[i]);
             reading.setNominal(new BigDecimal(nominals[i]));
             reading.setReadingValue(new BigDecimal(values[i]));
-            reading.setMeasureTime(new Date());
+            if (i >= 3) {
+                reading.setDisplayUnit("mg");
+                reading.setDisplayValue(new BigDecimal(values[i]).movePointRight(3).toPlainString());
+            } else {
+                reading.setDisplayUnit("g");
+                reading.setDisplayValue(values[i]);
+            }
+            reading.setMeasureTime(new Date(base.getTime() + i * 60000L));
             reading.setIsQualified(1);
             readingMapper.insert(reading);
         }
@@ -168,7 +176,8 @@ class WebApplicationSmokeTest {
                         .param("recordId", String.valueOf(record.getId()))
                         .session((org.springframework.mock.web.MockHttpSession) session))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("称重值曲线")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("称重值趋势图")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("50000.3 mg")));
 
         mvc.perform(get("/reviewer/export/pdf")
                         .param("recordId", String.valueOf(record.getId()))

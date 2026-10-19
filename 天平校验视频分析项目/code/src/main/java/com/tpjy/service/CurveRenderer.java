@@ -14,168 +14,57 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 称重值曲线渲染（FR-016）。
+ * 称重值趋势图：L1/L2/L3 三个独立图。
  *
- * <p>横轴为示值序号 1~9；纵轴取「相对偏差 %」——因为 9 次示值分属 L1/L2/L3 三个不同标称值
- * （如 200 g / 50 g / 10 g），直接画原始示值无法同屏比较，故按各自标称值折算相对偏差，
- * 并叠加 ±0.05% 限度带，判定是否超限一目了然。
- * 只依赖 JDK 自带的 Java2D，不引入额外图表库（内网可运行）。
+ * <p>每组只有 3 个测量值。图中不把 9 个点混成一条线，而是在各自砝码面板中显示 3 个点，
+ * 并用竖线连接该组的最小值与最大值。纵轴默认放大到标称值的 ±0.2%，便于看清微小差异；
+ * 绿色区域仍为实际判定用的 ±0.05% 限度带。
  */
 public class CurveRenderer {
 
-    private static final int W = 1000;
-    private static final int H = 1040;
-    private static final int LEFT = 90;
-    private static final int RIGHT = W - 50;
-    private static final int TOP = 130;
-    private static final int BOTTOM = 700;
+    private static final int W = 1260;
+    private static final int H = 760;
+    private static final int LEFT = 70;
+    private static final int RIGHT = W - 40;
+    private static final int TOP = 150;
+    private static final int BOTTOM = 640;
+    private static final double DEFAULT_PERCENT_RANGE = 0.2;
 
-    /** 渲染为 PNG。 */
     public File render(CurveData data, File out) throws Exception {
         BufferedImage img = new BufferedImage(W, H, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, W, H);
 
-        Font base = new Font("SansSerif", Font.PLAIN, 15);
-        Font bold = new Font("SansSerif", Font.BOLD, 18);
-        Font small = new Font("SansSerif", Font.PLAIN, 13);
+        Font title = font(Font.BOLD, 24);
+        Font sub = font(Font.PLAIN, 14);
+        Font panelTitle = font(Font.BOLD, 17);
+        Font axis = font(Font.PLAIN, 12);
 
-        // 标题
         g.setColor(new Color(30, 58, 95));
-        g.setFont(new Font("SansSerif", Font.BOLD, 22));
-        g.drawString("称重值曲线图", LEFT, 40);
-        g.setFont(base);
-        g.setColor(Color.DARK_GRAY);
+        g.setFont(title);
+        g.drawString("天平称重值趋势图", LEFT, 38);
+        g.setColor(new Color(75, 85, 99));
+        g.setFont(sub);
         g.drawString("记录号：" + nvl(data.getRecordNo()) + "　天平：" + nvl(data.getBalanceCode())
-                + "　校验日期：" + nvl(data.getCheckDate()) + "　结论：" + nvl(data.getResultText()), LEFT, 64);
-        g.drawString("纵轴：相对标称值的偏差（%）；橙色虚线为 ±0.05% 限度", LEFT, 86);
+                + "　校验日期：" + nvl(data.getCheckDate()) + "　结论：" + nvl(data.getResultText()), LEFT, 66);
+        g.drawString("每组 3 次示值独立成图；竖线连接该组最小值与最大值。纵轴默认放大到标称值 ±0.2%，绿色带为 ±0.05% 限度。", LEFT, 88);
 
-        // 纵轴范围（单位：百分比 %）：±0.06% 起，比 ±0.05% 限度略宽，便于看出超限
-        double yMax = 0.06;
-        for (CurvePoint p : data.getPoints()) {
-            Double dev = devPercent(p);
-            if (dev != null && Math.abs(dev) > yMax) {
-                yMax = Math.abs(dev) * 1.15;
-            }
-        }
-        double yMin = -yMax;
-
-        int plotW = RIGHT - LEFT;
-        int plotH = BOTTOM - TOP;
-        double xOf = plotW / 9.0;
-        double yOf = plotH / (yMax - yMin);
-
-        // 限度带（±0.05%）
-        int bandTop = (int) (TOP + (yMax - 0.05) * yOf);
-        int bandBottom = (int) (TOP + (yMax + 0.05) * yOf);
-        g.setColor(new Color(226, 245, 230));
-        g.fillRect(LEFT, bandTop, plotW, bandBottom - bandTop);
-
-        // 网格 + 纵轴刻度
-        g.setFont(small);
-        for (int i = 0; i <= 6; i++) {
-            double v = yMin + (yMax - yMin) * i / 6.0;
-            int y = (int) (BOTTOM - (v - yMin) * yOf);
-            g.setColor(new Color(230, 230, 230));
-            g.drawLine(LEFT, y, RIGHT, y);
-            g.setColor(Color.GRAY);
-            String label = String.format("%.3f%%", v);
-            g.drawString(label, LEFT - 62, y + 5);
-        }
-
-        // 坐标轴
-        g.setColor(new Color(120, 120, 120));
-        g.setStroke(new BasicStroke(1.4f));
-        g.drawLine(LEFT, TOP, LEFT, BOTTOM);
-        g.drawLine(LEFT, BOTTOM, RIGHT, BOTTOM);
-
-        // 限度参考线
-        g.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
-        g.setColor(new Color(215, 130, 20));
-        int up = (int) (TOP + (yMax - 0.05) * yOf);
-        int dn = (int) (TOP + (yMax + 0.05) * yOf);
-        g.drawLine(LEFT, up, RIGHT, up);
-        g.drawLine(LEFT, dn, RIGHT, dn);
-        g.setStroke(new BasicStroke(1f));
-        g.setFont(small);
-        g.drawString("+0.05%", RIGHT - 60, up - 6);
-        g.drawString("-0.05%", RIGHT - 60, dn + 16);
-
-        // 横轴刻度（1~9）
-        g.setColor(Color.GRAY);
-        String[] levels = new String[]{"L1", "L1", "L1", "L2", "L2", "L2", "L3", "L3", "L3"};
-        for (int i = 1; i <= 9; i++) {
-            int x = (int) (LEFT + (i - 0.5) * xOf);
-            g.drawLine(x, BOTTOM, x, BOTTOM + 5);
-            g.setColor(new Color(90, 90, 90));
-            g.setFont(small);
-            g.drawString(String.valueOf(i), x - 4, BOTTOM + 22);
-            g.setColor(new Color(150, 150, 150));
-            g.drawString(levels[i - 1], x - 9, BOTTOM + 40);
-            g.setColor(Color.GRAY);
-        }
-        g.setColor(new Color(60, 60, 60));
-        g.setFont(base);
-        g.drawString("示值序号（1~9，第 1~3 次属 L1、4~6 属 L2、7~9 属 L3）", LEFT + plotW / 2 - 190, BOTTOM + 70);
-
-        // 折线 + 数据点
-        g.setStroke(new BasicStroke(2.2f));
-        g.setColor(new Color(30, 90, 170));
-        int prevX = -1;
-        int prevY = -1;
-        for (CurvePoint p : data.getPoints()) {
-            Double dev = devPercent(p);
-            if (dev == null) {
-                continue;
-            }
-            int x = (int) (LEFT + (p.getSeq() - 0.5) * xOf);
-            int y = (int) (TOP + (yMax - dev) * yOf);
-            if (prevX >= 0) {
-                g.drawLine(prevX, prevY, x, y);
-            }
-            prevX = x;
-            prevY = y;
-            // 合格绿、不合格红
-            g.setColor(p.isQualified() ? new Color(30, 140, 70) : new Color(200, 40, 40));
-            g.fill(new Ellipse2D.Double(x - 5, y - 5, 10, 10));
-            g.setFont(small);
-            String txt = String.format("%.3f%%", dev);
-            if ("-0.000%".equals(txt)) {
-                txt = "0.000%";
-            }
-            g.drawString(txt, x - 26, y - 12);
-            g.setColor(new Color(30, 90, 170));
-        }
-
-        // 底部数据表
-        g.setColor(Color.BLACK);
-        g.setFont(small);
-        int ty = BOTTOM + 110;
-        g.setFont(bold);
-        g.drawString("明细（标称值 / 限度 / 示值）", LEFT - 30, ty);
-        g.setFont(small);
-        ty += 20;
-        for (CurvePoint p : data.getPoints()) {
-            String line = "第 " + p.getSeq() + " 次（" + p.getLevel() + "）：标称 "
-                    + plain(p.getNominal()) + " g　限度 "
-                    + plain(p.getLower()) + " ~ " + plain(p.getUpper()) + " g　示值 "
-                    + (p.getValue() == null ? "未识别" : p.getValue().toPlainString())
-                    + "　" + (p.getValue() == null ? "待补录" : (p.isQualified() ? "合格" : "不合格"));
-            if (ty > H - 12) {
-                break;
-            }
-            g.drawString(line, LEFT - 30, ty);
-            ty += 18;
+        String[] levels = new String[]{"L1", "L2", "L3"};
+        int panelGap = 24;
+        int panelW = (RIGHT - LEFT - panelGap * 2) / 3;
+        for (int i = 0; i < levels.length; i++) {
+            int panelLeft = LEFT + i * (panelW + panelGap);
+            drawPanel(g, data, levels[i], panelLeft, panelLeft + panelW, panelTitle, axis);
         }
 
         g.dispose();
-
         File parent = out.getParentFile();
         if (parent != null && !parent.exists()) {
             parent.mkdirs();
@@ -184,8 +73,142 @@ public class CurveRenderer {
         return out;
     }
 
-    /** 相对标称值的偏差（单位：百分比数值），如 0.03 表示 0.03%。 */
-    private static Double devPercent(CurvePoint p) {
+    private void drawPanel(Graphics2D g, CurveData data, String level,
+                           int left, int right, Font panelTitle, Font axisFont) {
+        List<CurvePoint> points = pointsOf(data, level);
+        BigDecimal nominal = points.isEmpty() ? null : points.get(0).getNominal();
+        g.setColor(new Color(30, 58, 95));
+        g.setFont(panelTitle);
+        g.drawString(level + (nominal == null ? "" : " · " + plain(nominal) + " g"), left, TOP - 28);
+
+        if (points.isEmpty() || nominal == null || nominal.signum() == 0) {
+            g.setColor(Color.GRAY);
+            g.setFont(axisFont);
+            g.drawString("暂无数据", left + 80, TOP + 100);
+            return;
+        }
+
+        double percentRange = DEFAULT_PERCENT_RANGE;
+        for (CurvePoint p : points) {
+            Double dev = deviationPercent(p);
+            if (dev != null) {
+                percentRange = Math.max(percentRange, Math.abs(dev) * 1.15);
+            }
+        }
+        int plotLeft = left + 46;
+        int plotRight = right - 10;
+        int plotW = plotRight - plotLeft;
+        int plotH = BOTTOM - TOP;
+        double yScale = plotH / (percentRange * 2.0);
+
+        int limitTop = yFor(0.05, percentRange, yScale);
+        int limitBottom = yFor(-0.05, percentRange, yScale);
+        g.setColor(new Color(231, 247, 234));
+        g.fillRect(plotLeft, limitTop, plotW, Math.max(1, limitBottom - limitTop));
+
+        g.setFont(axisFont);
+        for (int tick = 0; tick <= 4; tick++) {
+            double percent = -percentRange + (percentRange * 2.0) * tick / 4.0;
+            int y = yFor(percent, percentRange, yScale);
+            g.setColor(new Color(229, 231, 235));
+            g.drawLine(plotLeft, y, plotRight, y);
+            g.setColor(new Color(100, 116, 139));
+            BigDecimal grams = nominal.multiply(
+                    BigDecimal.ONE.add(BigDecimal.valueOf(percent).movePointLeft(2)));
+            g.drawString(String.format("%.4f", grams), left, y + 4);
+        }
+
+        g.setColor(new Color(100, 116, 139));
+        g.setStroke(new BasicStroke(1.3f));
+        g.drawLine(plotLeft, TOP, plotLeft, BOTTOM);
+        g.drawLine(plotLeft, BOTTOM, plotRight, BOTTOM);
+
+        g.setColor(new Color(215, 130, 20));
+        g.setStroke(new BasicStroke(1.1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f,
+                new float[]{6f, 4f}, 0f));
+        g.drawLine(plotLeft, limitTop, plotRight, limitTop);
+        g.drawLine(plotLeft, limitBottom, plotRight, limitBottom);
+        g.setFont(axisFont);
+        g.drawString("+0.05%", plotRight - 48, limitTop - 5);
+        g.drawString("-0.05%", plotRight - 48, limitBottom + 14);
+        g.setStroke(new BasicStroke(1f));
+
+        double[] devs = new double[points.size()];
+        double min = Double.POSITIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY;
+        int minIndex = -1;
+        int maxIndex = -1;
+        int[] xs = new int[points.size()];
+        int[] ys = new int[points.size()];
+        for (int i = 0; i < points.size(); i++) {
+            CurvePoint p = points.get(i);
+            Double dev = deviationPercent(p);
+            xs[i] = plotLeft + (int) ((i + 0.5) * plotW / 3.0);
+            if (dev == null) {
+                ys[i] = -1;
+                continue;
+            }
+            devs[i] = dev;
+            ys[i] = yFor(dev, percentRange, yScale);
+            if (dev < min) {
+                min = dev;
+                minIndex = i;
+            }
+            if (dev > max) {
+                max = dev;
+                maxIndex = i;
+            }
+        }
+
+        if (minIndex >= 0 && maxIndex >= 0 && minIndex != maxIndex) {
+            g.setColor(new Color(30, 90, 170));
+            g.setStroke(new BasicStroke(2.4f));
+            g.drawLine(xs[maxIndex], ys[maxIndex], xs[minIndex], ys[minIndex]);
+        }
+
+        for (int i = 0; i < points.size(); i++) {
+            CurvePoint p = points.get(i);
+            if (ys[i] < 0) {
+                continue;
+            }
+            g.setColor(p.isQualified() ? new Color(30, 140, 70) : new Color(200, 40, 40));
+            g.fill(new Ellipse2D.Double(xs[i] - 6, ys[i] - 6, 12, 12));
+            g.setFont(axisFont);
+            g.drawString(p.getSeq() % 3 == 0 ? "3" : String.valueOf(p.getSeq() % 3), xs[i] - 3, BOTTOM + 20);
+            g.drawString(String.format("%.3f%%", devs[i]), xs[i] - 22, ys[i] - 10);
+        }
+
+        g.setColor(new Color(71, 85, 105));
+        g.setFont(axisFont);
+        g.drawString("测量次序", left + panelW(plotLeft, plotRight) / 2 - 24, BOTTOM + 43);
+        if (points.size() < 3 || ys[0] < 0 || ys[1] < 0 || ys[2] < 0) {
+            g.setColor(new Color(180, 83, 9));
+            g.drawString("存在待补录示值", plotLeft, TOP + 20);
+        }
+    }
+
+    private static int panelW(int left, int right) {
+        return right - left;
+    }
+
+    private static int yFor(double percent, double range, double scale) {
+        return (int) (TOP + (range - percent) * scale);
+    }
+
+    private static List<CurvePoint> pointsOf(CurveData data, String level) {
+        List<CurvePoint> list = new ArrayList<CurvePoint>();
+        if (data == null) {
+            return list;
+        }
+        for (CurvePoint p : data.getPoints()) {
+            if (level.equals(p.getLevel())) {
+                list.add(p);
+            }
+        }
+        return list;
+    }
+
+    private static Double deviationPercent(CurvePoint p) {
         if (p.getValue() == null || p.getNominal() == null || p.getNominal().signum() == 0) {
             return null;
         }
@@ -193,6 +216,17 @@ public class CurveRenderer {
                 .divide(p.getNominal(), 8, RoundingMode.HALF_UP)
                 .movePointRight(2)
                 .doubleValue();
+    }
+
+    private static Font font(int style, int size) {
+        String[] candidates = new String[]{"Microsoft YaHei", "SimHei", "Noto Sans CJK SC", "SansSerif"};
+        for (String name : candidates) {
+            Font f = new Font(name, style, size);
+            if (f.canDisplay('天')) {
+                return f;
+            }
+        }
+        return new Font("SansSerif", style, size);
     }
 
     private static String plain(BigDecimal v) {

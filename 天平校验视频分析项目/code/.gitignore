@@ -1,5 +1,7 @@
 target/
 upload/
+videos/
+backups/
 .idea/
 *.iml
 *.log

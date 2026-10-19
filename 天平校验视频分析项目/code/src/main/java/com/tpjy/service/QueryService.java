@@ -12,11 +12,13 @@ import com.tpjy.entity.CalibrationRecord;
 import com.tpjy.entity.ReadTrace;
 import com.tpjy.entity.Reading;
 import com.tpjy.entity.SysUser;
+import com.tpjy.entity.WeightBox;
 import com.tpjy.mapper.BalanceMapper;
 import com.tpjy.mapper.CalibrationRecordMapper;
 import com.tpjy.mapper.ReadTraceMapper;
 import com.tpjy.mapper.ReadingMapper;
 import com.tpjy.mapper.SysUserMapper;
+import com.tpjy.mapper.WeightBoxMapper;
 import com.tpjy.util.TpjyUtils;
 import org.springframework.stereotype.Service;
 
@@ -39,18 +41,20 @@ public class QueryService {
     private final ReadTraceMapper traceMapper;
     private final BalanceMapper balanceMapper;
     private final SysUserMapper userMapper;
+    private final WeightBoxMapper weightBoxMapper;
     private final JudgeService judgeService;
     private final CurveBuilder curveBuilder = new CurveBuilder();
 
     public QueryService(CalibrationRecordMapper recordMapper, ReadingMapper readingMapper,
                         ReadTraceMapper traceMapper, BalanceMapper balanceMapper,
-                        SysUserMapper userMapper,
+                        SysUserMapper userMapper, WeightBoxMapper weightBoxMapper,
                         JudgeService judgeService) {
         this.recordMapper = recordMapper;
         this.readingMapper = readingMapper;
         this.traceMapper = traceMapper;
         this.balanceMapper = balanceMapper;
         this.userMapper = userMapper;
+        this.weightBoxMapper = weightBoxMapper;
         this.judgeService = judgeService;
     }
 
@@ -135,6 +139,16 @@ public class QueryService {
             d.setUniqueNo(balance.getUniqueNo());
             d.setPrecisionText(balance.getRange1Precision());
             d.setRangeText("Max " + nvl(balance.getRange1()) + " · d " + nvl(balance.getRange1Precision()));
+            if (balance.getRange2() != null && !balance.getRange2().trim().isEmpty()) {
+                d.setRangeText(d.getRangeText() + " / Max " + balance.getRange2()
+                        + " · d " + nvl(balance.getRange2Precision()));
+            }
+            if (balance.getWeightBoxId() != null) {
+                WeightBox box = weightBoxMapper.selectById(balance.getWeightBoxId());
+                if (box != null) {
+                    d.setWeightBoxNo(box.getBoxNo());
+                }
+            }
         }
         for (ReadTrace t : listTraces(recordId)) {
             d.getTraces().add(t.getOriginalValue() + " → " + t.getConfirmedValue());
@@ -168,6 +182,11 @@ public class QueryService {
             rr.setNominal(r.getNominal());
             rr.setValue(r.getReadingValue());
             rr.setRawValue(r.getReadingValue() == null ? null : r.getReadingValue().toPlainString());
+            if (r.getDisplayValue() != null) {
+                rr.setRawValue(r.getDisplayValue());
+            }
+            rr.setDisplayUnit(r.getDisplayUnit());
+            rr.setMeasureTime(TpjyUtils.formatDate(r.getMeasureTime()));
             rr.setChanged(r.getChanged() != null && r.getChanged());
             list.add(rr);
         }

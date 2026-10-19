@@ -10,6 +10,11 @@ public class ReadingJudge {
     private String level;
     private BigDecimal nominal;
     private BigDecimal value;
+    /** 天平实际显示数值文本与单位。 */
+    private String rawValue;
+    private String displayUnit = "g";
+    /** 测量时间（yyyy-MM-dd HH:mm）。 */
+    private String measureTime;
     private BigDecimal lower;
     private BigDecimal upper;
     /** 是否在限度内。 */
@@ -45,6 +50,39 @@ public class ReadingJudge {
 
     public void setValue(BigDecimal value) {
         this.value = value;
+    }
+
+    public String getRawValue() {
+        return rawValue;
+    }
+
+    public void setRawValue(String rawValue) {
+        this.rawValue = rawValue;
+    }
+
+    public String getDisplayUnit() {
+        return displayUnit;
+    }
+
+    public void setDisplayUnit(String displayUnit) {
+        this.displayUnit = displayUnit == null || displayUnit.trim().isEmpty() ? "g" : displayUnit;
+    }
+
+    public String getMeasureTime() {
+        return measureTime;
+    }
+
+    public void setMeasureTime(String measureTime) {
+        this.measureTime = measureTime;
+    }
+
+    /** 记录表展示用：实际显示值 + 实际单位。 */
+    public String getDisplayText() {
+        if (value == null) {
+            return "未识别";
+        }
+        String shown = rawValue == null ? value.stripTrailingZeros().toPlainString() : rawValue;
+        return shown + " " + displayUnit;
     }
 
     public BigDecimal getLower() {

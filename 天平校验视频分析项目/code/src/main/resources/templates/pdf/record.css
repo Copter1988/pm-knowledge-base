@@ -1,14 +1,18 @@
 @page { size: A4; margin: 16mm 14mm; }
 body { font-family: 'TPJYFont'; font-size: 10pt; color: #222; }
-h1 { font-size: 16pt; text-align: center; margin: 0 0 4pt 0; color: #1E3A5F; }
-.sub { text-align: center; font-size: 9pt; color: #666; margin-bottom: 10pt; }
-.sec { font-size: 11pt; font-weight: bold; color: #1E3A5F; margin: 10pt 0 4pt 0;
+h1 { font-size: 17pt; text-align: center; margin: 0 0 8pt 0; color: #1E3A5F; }
+.sub { text-align: center; font-size: 9pt; color: #666; margin-bottom: 8pt; }
+.sec { font-size: 10.5pt; font-weight: bold; color: #1E3A5F; margin: 8pt 0 4pt 0;
 
        border-left: 3pt solid #1E3A5F; padding-left: 5pt; }
 table { width: 100%; border-collapse: collapse; }
 th, td { border: 0.6pt solid #999; padding: 3pt 4pt; font-size: 9pt; }
 th { background: #EEF3FA; font-weight: bold; }
 .info td { border: none; padding: 2pt 4pt; font-size: 9.5pt; }
+.record { margin-bottom: 5pt; page-break-inside: avoid; }
+.record th, .record td { padding: 2.2pt 4pt; font-size: 8.5pt; }
+.record th { width: 15%; }
+.record th.group { background: #DCE7F4; color: #14315C; text-align: center; font-size: 10pt; }
 .label { color: #666; }
 .center { text-align: center; }
 .right { text-align: right; }

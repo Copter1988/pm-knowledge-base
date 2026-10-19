@@ -14,6 +14,10 @@ public class RecognizedReading {
     private BigDecimal value;
     /** 原始文本（人工补录时保留用户输入，便于追溯）。 */
     private String rawValue;
+    /** 天平实际显示单位：g / mg。 */
+    private String displayUnit = "g";
+    /** 测量时间（yyyy-MM-dd HH:mm），与视频时间点 clock 分开保存。 */
+    private String measureTime;
     /** 该示值对应的视频时间点，形如 10:15。 */
     private String clock;
     private Integer second;
@@ -58,6 +62,22 @@ public class RecognizedReading {
 
     public void setRawValue(String rawValue) {
         this.rawValue = rawValue;
+    }
+
+    public String getDisplayUnit() {
+        return displayUnit;
+    }
+
+    public void setDisplayUnit(String displayUnit) {
+        this.displayUnit = displayUnit == null || displayUnit.trim().isEmpty() ? "g" : displayUnit;
+    }
+
+    public String getMeasureTime() {
+        return measureTime;
+    }
+
+    public void setMeasureTime(String measureTime) {
+        this.measureTime = measureTime;
     }
 
     public String getClock() {

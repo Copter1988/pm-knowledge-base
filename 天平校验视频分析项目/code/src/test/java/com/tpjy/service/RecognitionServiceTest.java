@@ -178,6 +178,54 @@ class RecognitionServiceTest {
         assertTrue(bad.hasAlert("DIGIT_MISMATCH"), "L2/L3 仍按 4 位填写时应提示位数不符");
     }
 
+    @Test
+    @DisplayName("mg 显示保留实际单位，按 mg 小数位校验，同时换算为 g")
+    void milligramDisplay(@TempDir Path tmp) throws Exception {
+        RecognizeOptions opt = options(tmp, "李一", "F001", Arrays.asList("F001"));
+        opt.applyRangePrecisions("0.1mg", null);
+        opt.setWeights(Arrays.asList(new BigDecimal("200"), new BigDecimal("50"), new BigDecimal("10")));
+        opt.setCheckDate(new java.util.Date(1782699300000L));
+        opt.setManualValues(Arrays.asList(
+                "200000.8mg", "199999.8mg", "200001.1mg",
+                "50000.3mg", "49999.7mg", "50000.2mg",
+                "10000.1mg", "10000.0mg", "9999.9mg"));
+
+        RecognitionResult r = new RecognitionService(
+                new StubFrameExtractor(frames(tmp, "李一", "F001")), new NoopOcrService(), 1)
+                .recognize(new File("stub.mp4"), opt);
+
+        assertEquals("mg", r.getReadings().get(0).getDisplayUnit());
+        assertEquals("200000.8", r.getReadings().get(0).getRawValue());
+        assertEquals(0, new BigDecimal("200.0008").compareTo(r.getReadings().get(0).getValue()));
+        assertFalse(r.hasAlert("DIGIT_MISMATCH"), "200000.8 mg 是 1 位小数，应符合 0.1mg 精度");
+        assertNotNull(r.getReadings().get(0).getMeasureTime(), "应把帧时间换算为测量时间");
+    }
+
+    @Test
+    @DisplayName("双量程精度按砝码实际落入的量程选择，并检查超量程")
+    void precisionByNominalCapacity(@TempDir Path tmp) throws Exception {
+        RecognizeOptions opt = options(tmp, "李一", "F002", Arrays.asList("F001", "F002"));
+        opt.setWeights(Arrays.asList(new BigDecimal("100"), new BigDecimal("20"), new BigDecimal("2")));
+        opt.setRange1CapacityGrams(new BigDecimal("120"));
+        opt.setRange2CapacityGrams(new BigDecimal("4"));
+        opt.applyRangePrecisions("0.1mg", "0.01mg");
+
+        assertEquals(4, opt.expectedDigitsForLevel("L1", "g"));
+        assertEquals(4, opt.expectedDigitsForLevel("L2", "g"));
+        assertEquals(5, opt.expectedDigitsForLevel("L3", "g"));
+        assertEquals(1, opt.expectedDigitsForLevel("L1", "mg"));
+        assertEquals(1, opt.expectedDigitsForLevel("L2", "mg"));
+        assertEquals(2, opt.expectedDigitsForLevel("L3", "mg"));
+
+        RecognizeOptions over = options(tmp, "李一", "F002", Arrays.asList("F001", "F002"));
+        over.setWeights(Arrays.asList(new BigDecimal("200"), new BigDecimal("50"), new BigDecimal("10")));
+        over.setRange1CapacityGrams(new BigDecimal("120"));
+        RecognitionResult result = new RecognitionService(
+                new StubFrameExtractor(frames(tmp, "李一", "F002")), new NoopOcrService(), 1)
+                .recognize(new File("stub.mp4"), over);
+        assertTrue(result.hasAlert("RANGE_MISMATCH"), "200g 砝码超过 F002 的 120g 第一量程应提示");
+    }
+
     // ---------------- 辅助 ----------------
 
     private RecognitionResult recognize(Path tmp, String qrPerson, String loginPerson,

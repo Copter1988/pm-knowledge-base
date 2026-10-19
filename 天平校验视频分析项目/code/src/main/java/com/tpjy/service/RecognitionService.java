@@ -2,6 +2,7 @@ package com.tpjy.service;
 
 import com.tpjy.common.Constants;
 import com.tpjy.dto.AlertItem;
+import com.tpjy.dto.MassReading;
 import com.tpjy.dto.RecognitionResult;
 import com.tpjy.dto.RecognizeOptions;
 import com.tpjy.dto.RecognizedReading;
@@ -14,6 +15,7 @@ import com.tpjy.util.TpjyUtils;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -57,6 +59,10 @@ public class RecognitionService {
         result.setVideoNo(opt.getVideoNo());
         result.setOcrImpl(ocrService == null ? "未配置" : ocrService.name());
         result.setFrameInterval(intervalSeconds);
+        Date checkDate = opt.getCheckDate() != null
+                ? opt.getCheckDate()
+                : new Date(video == null ? System.currentTimeMillis() : video.lastModified());
+        result.setCheckDate(TpjyUtils.formatDate(checkDate));
 
         File frameDir = opt.getFrameOutputDir() != null ? opt.getFrameOutputDir() : new File("./upload/frame/" + System.currentTimeMillis());
 
@@ -140,25 +146,48 @@ public class RecognitionService {
             RecognizedReading r = new RecognizedReading();
             r.setSeq(seq);
             r.setLevel(new JudgeService().groupLevel(seq));
-            if (manualIdx < opt.getManualValues().size()) {
+            if (opt.getManualValues() != null && manualIdx < opt.getManualValues().size()) {
                 String raw = opt.getManualValues().get(manualIdx);
                 manualIdx++;
                 if (raw != null && !raw.trim().isEmpty()) {
-                    r.setRawValue(raw.trim());
-                    r.setValue(TpjyUtils.parseDecimal(raw));
+                    try {
+                        MassReading mass = MassReading.parse(raw);
+                        if (!mass.isUsableMeasurement()) {
+                            result.addAlert(mass.isStandbyZero() ? "STANDBY_ZERO" : "VALUE_INVALID",
+                                    "WARN", "第 " + seq + " 次输入值 " + mass.getDisplayText()
+                                            + " 不是有效称量值", null);
+                        } else {
+                            r.setRawValue(mass.getDisplayValue().toPlainString());
+                            r.setDisplayUnit(mass.getUnit());
+                            r.setValue(mass.getGrams());
+                        }
+                    } catch (IllegalArgumentException e) {
+                        result.addAlert("VALUE_INVALID", "WARN",
+                                "第 " + seq + " 次人工示值格式错误：" + e.getMessage(),
+                                null);
+                    }
                     r.setSecond(frames.isEmpty() ? null : frames.get(Math.min(frames.size() - 1,
                             (seq - 1) * frames.size() / 9)).getSecond());
                     r.setClock(r.getSecond() == null ? null : AlertItem.formatClock(r.getSecond()));
+                    r.setMeasureTime(measureTime(checkDate, r.getSecond()));
                 }
             }
             if (r.getValue() == null && ocrService != null && !frames.isEmpty()) {
                 Frame frame = frames.get(Math.min(frames.size() - 1, (seq - 1) * frames.size() / 9));
-                BigDecimal v = ocrService.readValue(frame.getFile().getAbsolutePath(), seq);
-                if (v != null) {
-                    r.setValue(v);
-                    r.setRawValue(v.toPlainString());
+                MassReading mass = ocrService.readValue(frame.getFile().getAbsolutePath(), seq);
+                if (mass != null && mass.isUsableMeasurement()) {
+                    r.setValue(mass.getGrams());
+                    r.setRawValue(mass.getDisplayValue().toPlainString());
+                    r.setDisplayUnit(mass.getUnit());
                     r.setSecond(frame.getSecond());
                     r.setClock(frame.getClock());
+                    r.setMeasureTime(measureTime(checkDate, frame.getSecond()));
+                } else if (mass != null) {
+                    String type = mass.isStandbyZero() ? "STANDBY_ZERO" : "UNSTABLE_READING";
+                    String message = mass.isStandbyZero()
+                            ? "第 " + seq + " 次识别到待机零值 " + mass.getDisplayText() + "，不作为称量结果"
+                            : "第 " + seq + " 次读数尚未稳定（" + mass.getDisplayText() + "），请等待示值稳定 1~2 秒";
+                    result.addAlert(type, "INFO", message, frame.getSecond());
                 }
             }
             // 砝码标称值：按分组取
@@ -166,6 +195,14 @@ public class RecognitionService {
                 BigDecimal nominal = new JudgeService().nominalOf(r.getLevel(),
                         opt.getWeights().get(0), opt.getWeights().get(1), opt.getWeights().get(2));
                 r.setNominal(nominal);
+                if (nominal != null && opt.getRange1CapacityGrams() != null
+                        && nominal.compareTo(opt.getRange1CapacityGrams()) > 0) {
+                    result.addAlert("RANGE_MISMATCH", "WARN",
+                            r.getLevel() + " 砝码标称值 " + nominal.stripTrailingZeros().toPlainString()
+                                    + " g 超过天平第一量程上限 "
+                                    + opt.getRange1CapacityGrams().stripTrailingZeros().toPlainString() + " g",
+                            r.getSecond());
+                }
             }
             readings.add(r);
         }
@@ -179,7 +216,7 @@ public class RecognitionService {
         if (digitsConfigured) {
             int levelCount = 0;
             for (RecognizedReading r : readings) {
-                int expectedDigits = opt.expectedDigitsForLevel(r.getLevel());
+                int expectedDigits = opt.expectedDigitsForLevel(r.getLevel(), r.getDisplayUnit());
                 if (r.getRawValue() == null) {
                     continue;
                 }
@@ -193,7 +230,8 @@ public class RecognitionService {
                     result.addAlert("DIGIT_MISMATCH", "WARN",
                             "第 " + r.getSeq() + " 次示值识别为 " + r.getRawValue() + "，精度 d = "
                                     + (precision == null ? "?" : precision)
-                                    + " 应显示 " + expectedDigits + " 位小数，可能存在量程 / 精度设置错误",
+                                    + " 在 " + r.getDisplayUnit() + " 显示下应为 " + expectedDigits
+                                    + " 位小数，可能存在量程 / 精度设置错误",
                             r.getSecond());
                 }
             }
@@ -220,5 +258,12 @@ public class RecognitionService {
 
         result.setElapsedMillis(System.currentTimeMillis() - start);
         return result;
+    }
+
+    private static String measureTime(Date checkDate, Integer second) {
+        if (checkDate == null || second == null) {
+            return null;
+        }
+        return TpjyUtils.formatDate(new Date(checkDate.getTime() + second * 1000L));
     }
 }

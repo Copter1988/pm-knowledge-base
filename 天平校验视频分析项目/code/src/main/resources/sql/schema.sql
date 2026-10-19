@@ -81,6 +81,8 @@ CREATE TABLE IF NOT EXISTS reading (
   weight_level  CHAR(2)      NOT NULL,
   nominal       DECIMAL(12,4),
   reading_value DECIMAL(14,6),
+    display_value VARCHAR(50),
+    display_unit  VARCHAR(10)   DEFAULT 'g',
   measure_time  DATETIME,
   is_qualified  TINYINT,
   UNIQUE KEY uk_record_seq (record_id, seq)

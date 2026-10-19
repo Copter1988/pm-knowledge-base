@@ -115,7 +115,10 @@ public final class AnalyzeCli {
         RecognizeOptions opt = new RecognizeOptions();
         opt.setPersonName(a.get("person"));
         opt.setBalanceCode(a.get("balance"));
+        opt.setCheckDate(checkDate);
         opt.setWeights(weights);
+        opt.setRange1CapacityGrams(parseCapacity(a.get("range1-capacity")));
+        opt.setRange2CapacityGrams(parseCapacity(a.get("range2-capacity")));
         opt.setExpectedDigits(expectedDigits);
         opt.setPrecisionText(a.get("precision"));
         if (!a.containsKey("digits") && (a.containsKey("precision") || a.containsKey("precision2"))) {
@@ -174,6 +177,7 @@ public final class AnalyzeCli {
         boolean cleanOk = parseBool(a.get("clean"), true);
         boolean levelOk = parseBool(a.get("level"), true);
         String calib = a.containsKey("calib") ? a.get("calib") : Constants.CALIB_YES;
+        String recordStatus = a.containsKey("status") ? a.get("status") : Constants.STATUS_DRAFT;
 
         JudgeResult jr = judgeService.judgeRecord(rr.getReadings(), w1, w2, w3, cleanOk, levelOk, calib);
         Json.write(new File(outDir, "judge.json"), jr);
@@ -183,16 +187,19 @@ public final class AnalyzeCli {
         System.out.println("前置条件  : 清洁=" + (cleanOk ? "是" : "否") + "，水平=" + (levelOk ? "是" : "否")
                 + "，内部校正=" + calib);
         System.out.println();
-        System.out.printf("%-6s %-4s %-12s %-24s %-16s %-8s%n", "序号", "组", "标称值(g)", "限度(g)", "示值(g)", "判定");
+        System.out.printf("%-6s %-4s %-10s %-22s %-18s %-12s %-19s %-8s%n",
+                "次别", "组", "标称值(g)", "限度(g)", "实际显示", "换算(g)", "测量时间", "判定");
         for (ReadingJudge d : jr.getDetails()) {
             String limit = (d.getLower() == null ? "-" : d.getLower().toPlainString()) + " ~ "
                     + (d.getUpper() == null ? "-" : d.getUpper().toPlainString());
-            System.out.printf("%-6s %-4s %-12s %-24s %-16s %-8s%n",
-                    d.getSeq(),
+            System.out.printf("%-6s %-4s %-10s %-22s %-18s %-12s %-19s %-8s%n",
+                    d.getLevel() + "-" + ((d.getSeq() - 1) % 3 + 1),
                     d.getLevel(),
                     d.getNominal() == null ? "-" : TpjyUtils.plain(d.getNominal()),
                     limit,
-                    d.getValue() == null ? "未识别" : d.getValue().toPlainString(),
+                    d.getDisplayText(),
+                    d.getValue() == null ? "-" : d.getValue().toPlainString(),
+                    d.getMeasureTime() == null ? "-" : d.getMeasureTime(),
                     d.getValue() == null ? "待补录" : (d.isQualified() ? "合格" : "不合格"));
         }
         System.out.println();
@@ -216,7 +223,7 @@ public final class AnalyzeCli {
         draft.put("cleanOk", cleanOk);
         draft.put("levelOk", levelOk);
         draft.put("internalCalibOk", calib);
-        draft.put("status", Constants.STATUS_DRAFT);
+        draft.put("status", recordStatus);
         draft.put("result", jr.isQualified() ? 1 : 0);
         draft.put("resultText", jr.getResultText());
         draft.put("remark", jr.getRemarkPrefill());
@@ -229,6 +236,10 @@ public final class AnalyzeCli {
             row.put("lower", d.getLower());
             row.put("upper", d.getUpper());
             row.put("value", d.getValue());
+            row.put("displayValue", d.getRawValue());
+            row.put("displayUnit", d.getDisplayUnit());
+            row.put("measureTime", d.getMeasureTime());
+            row.put("displayText", d.getDisplayText());
             row.put("qualified", d.isQualified());
             rows.add(row);
         }
@@ -256,7 +267,7 @@ public final class AnalyzeCli {
         detail.setCheckDate(TpjyUtils.formatDate(checkDate));
         detail.setPrecisionText(opt.getPrecisionText());
         detail.setRangeText(opt.getPrecisionText() == null ? null : ("d " + opt.getPrecisionText()));
-        detail.setStatus(Constants.STATUS_DRAFT);
+        detail.setStatus(recordStatus);
         detail.setRemark(jr.getRemarkPrefill());
         detail.setCleanOk(cleanOk ? 1 : 0);
         detail.setLevelOk(levelOk ? 1 : 0);
@@ -278,8 +289,8 @@ public final class AnalyzeCli {
 
         System.out.println();
         System.out.println("--- 三、查询 / 曲线 / 导出（WBS 1.3.6）---");
-        System.out.println("曲线数据   : " + curve.getPoints().size() + " 个点（横轴 1~9，含 ±0.05% 限度参考线）");
-        System.out.println("曲线图片   : curve.png");
+        System.out.println("趋势数据   : L1/L2/L3 三组，各 3 个点；连接每组最大值/最小值");
+        System.out.println("趋势图片   : curve.png（纵轴默认 ±0.2%）");
         if (a.containsKey("no-pdf")) {
             System.out.println("PDF 导出   : 已跳过（--no-pdf）");
         } else if (pdfOk) {
@@ -306,7 +317,7 @@ public final class AnalyzeCli {
         System.out.println("out/record.json     记录草案（记录号/前置条件/9 示值/结论）");
         System.out.println("out/curve.json      曲线数据（给 ECharts）");
         System.out.println("out/curve.png       曲线图（Java2D 直接出图）");
-        System.out.println("out/record.pdf      导出 PDF（中文字体内嵌，按需求不打印测量时间）");
+        System.out.println("out/record.pdf      导出 PDF（中文字体内嵌，按记录表显示测量时间和原屏单位）");
         System.out.println("out/audit.log       审计留痕");
         System.out.println("抽帧图片: " + opt.getFrameOutputDir().getAbsolutePath());
     }
@@ -320,20 +331,22 @@ public final class AnalyzeCli {
         sb.append("校验日期：").append(rr.getCheckDate() == null ? "-" : rr.getCheckDate()).append('\n');
         sb.append("检验人员：").append(rr.getPersonFromQr() == null ? opt.getPersonName() : rr.getPersonFromQr()).append('\n');
         sb.append("天平编号：").append(rr.getBalanceFromQr() == null ? opt.getBalanceCode() : rr.getBalanceFromQr()).append('\n');
-        sb.append("量程精度：").append(opt.getPrecisionText() == null ? "-" : opt.getPrecisionText())
-                .append("（应显示 ").append(opt.getExpectedDigits() < 0 ? "?" : String.valueOf(opt.getExpectedDigits())).append(" 位小数）\n");
+        sb.append("量程精度：").append(opt.getPrecisionText() == null ? "-" : opt.getPrecisionText()).append('\n');
+        sb.append("显示口径：测量示值保留天平实际显示值/单位；限度与判定统一使用 g\n");
         sb.append("前置条件：清洁=").append(cleanOk ? "是" : "否")
                 .append("，水平=").append(levelOk ? "是" : "否")
                 .append("，内部校正=").append(calib).append('\n');
         sb.append('\n');
-        sb.append("序号  组  标称值(g)    限度(g)                    示值(g)      判定\n");
+        sb.append("次别  组  标称值(g)  限度(g)                  天平实际显示      换算(g)     测量时间          判定\n");
         for (ReadingJudge d : jr.getDetails()) {
-            sb.append(pad(String.valueOf(d.getSeq()), 6))
+            sb.append(pad(d.getLevel() + "-" + ((d.getSeq() - 1) % 3 + 1), 6))
                     .append(pad(d.getLevel(), 4))
-                    .append(pad(d.getNominal() == null ? "-" : TpjyUtils.plain(d.getNominal()), 14))
+                    .append(pad(d.getNominal() == null ? "-" : TpjyUtils.plain(d.getNominal()), 10))
                     .append(pad((d.getLower() == null ? "-" : d.getLower().toPlainString()) + " ~ "
-                            + (d.getUpper() == null ? "-" : d.getUpper().toPlainString()), 26))
-                    .append(pad(d.getValue() == null ? "未识别" : d.getValue().toPlainString(), 13))
+                            + (d.getUpper() == null ? "-" : d.getUpper().toPlainString()), 24))
+                    .append(pad(d.getDisplayText(), 18))
+                    .append(pad(d.getValue() == null ? "-" : d.getValue().toPlainString(), 12))
+                    .append(pad(d.getMeasureTime() == null ? "-" : d.getMeasureTime(), 19))
                     .append(d.getValue() == null ? "待补录" : (d.isQualified() ? "合格" : "不合格"))
                     .append('\n');
         }
@@ -466,6 +479,17 @@ public final class AnalyzeCli {
         return list;
     }
 
+    private static BigDecimal parseCapacity(String s) {
+        if (s == null || s.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return com.tpjy.dto.MassReading.parse(s).getGrams();
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     private static void printUsage() {
         List<String> lines = Arrays.asList(
                 "天平校验视频分析系统 · 命令行识别与判定（甲的模块，无需数据库）",
@@ -479,10 +503,13 @@ public final class AnalyzeCli {
                 "  --weights=200,50,10       天平 L1/L2/L3 砝码标称值（g），判定与限度计算用",
                 "  --precision=0.1mg         第一量程精度，换算「应显示位数」做位数校验",
                 "  --precision2=0.01mg       双量程第二量程精度（L2/L3 使用；单量程可省略）",
+                "  --range1-capacity=220g    第一量程容量，用于超量程检查",
+                "  --range2-capacity=40g     双量程第二量程容量，用于选择细精度档",
                 "  --digits=4                直接指定应显示位数（优先于 --precision）",
                 "  --known-balances=F001,F002 已登记天平清单，用于「天平未登记」提示",
                 "  --values=200.0006,199.9998,... 人工补录/模拟 9 个示值（noop OCR 时用它验证判定链）",
                 "  --clean=1 --level=1 --calib=是   前置条件（calib 取 是/否/NA）",
+                "  --status=已复核           导出 PDF 时使用复核状态（CLI 默认 草稿）",
                 "  --check-date=\"2026-06-29 10:13\"  校验日期（默认取视频文件时间）",
                 "  --seq=11 --video-seq=43   记录号/视频号流水（默认 1）",
                 "  --interval=1              抽帧间隔秒（默认 1）",

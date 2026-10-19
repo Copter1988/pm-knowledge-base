@@ -9,7 +9,7 @@ import com.tpjy.dto.RecognizedReading;
 import java.util.List;
 
 /**
- * 曲线构建（FR-016）：把判定明细转成曲线数据（横轴 = 示值序号 1~9，含限度上下参考线）。
+ * 趋势图数据构建（FR-016）：保留 L1/L2/L3 三组各 3 次示值，渲染时分组独立显示。
  * 纯逻辑，页面（ECharts）与命令行（Java2D 出 PNG）共用。
  */
 public class CurveBuilder {
@@ -31,13 +31,15 @@ public class CurveBuilder {
                 p.setLower(d.getLower());
                 p.setUpper(d.getUpper());
                 p.setQualified(d.isQualified());
+                p.setDisplayText(d.getDisplayText());
+                p.setMeasureTime(d.getMeasureTime());
                 data.getPoints().add(p);
             }
         }
         return data;
     }
 
-    /** 把读数时间回填到曲线点（查询页展示用；导出 PDF 不打印时间）。 */
+    /** 把视频回放时间点回填到曲线点。 */
     public CurveData fillClock(CurveData data, List<RecognizedReading> readings) {
         if (data == null || readings == null) {
             return data;

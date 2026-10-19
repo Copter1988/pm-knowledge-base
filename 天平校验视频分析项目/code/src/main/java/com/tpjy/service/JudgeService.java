@@ -185,6 +185,9 @@ public class JudgeService {
                 BigDecimal nominal = r.getNominal() != null ? r.getNominal() : nominalOf(level, w1, w2, w3);
                 d.setNominal(nominal);
                 d.setValue(r.getValue());
+                d.setRawValue(r.getRawValue());
+                d.setDisplayUnit(r.getDisplayUnit());
+                d.setMeasureTime(r.getMeasureTime());
 
                 if (nominal == null || r.getValue() == null) {
                     d.setQualified(false);

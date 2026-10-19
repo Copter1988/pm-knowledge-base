@@ -7,6 +7,9 @@ package com.tpjy.dto;
  * BALANCE_NOT_FOUND 天平未登记或选错天平、
  * RANGE_MISMATCH 量程或精度对不上、
  * DIGIT_MISMATCH 读数位数不对、
+ * STANDBY_ZERO 待机零点、
+ * UNSTABLE_READING 示值尚未稳定、
+ * VALUE_INVALID 人工输入格式错误、
  * OCR_MISSED 未识别到示值（走人工补录，非异常）。
  */
 public class AlertItem {

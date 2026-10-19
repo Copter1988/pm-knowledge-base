@@ -1,6 +1,6 @@
 package com.tpjy.service.ocr;
 
-import java.math.BigDecimal;
+import com.tpjy.dto.MassReading;
 
 /**
  * 默认 OCR 实现：始终返回 null，表示「未识别到」。
@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 public class NoopOcrService implements OcrService {
 
     @Override
-    public BigDecimal readValue(String framePath, int seq) {
+    public MassReading readValue(String framePath, int seq) {
         return null;
     }
 

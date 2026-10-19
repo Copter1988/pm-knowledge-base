@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * 一条校验记录的完整详情（页面详情页 / PDF 导出 / 命令行输出共用同一份模型）。
  *
- * <p>注意：按 SRS §3.3.2，测量时间「存库、不印在导出 PDF」，故 PDF 模板不引用 clock 字段。
+ * <p>测量时间随每次示值保留，并在新的记录表式 PDF 中展示。
  */
 public class RecordDetail {
 
@@ -17,6 +17,8 @@ public class RecordDetail {
     private String balanceCode;
     private String dept;
     private String uniqueNo;
+    /** 砝码盒唯一号。 */
+    private String weightBoxNo;
     /** 形如 Max 220 g · d 0.1 mg。 */
     private String rangeText;
     private String precisionText;
@@ -106,6 +108,14 @@ public class RecordDetail {
 
     public void setUniqueNo(String uniqueNo) {
         this.uniqueNo = uniqueNo;
+    }
+
+    public String getWeightBoxNo() {
+        return weightBoxNo;
+    }
+
+    public void setWeightBoxNo(String weightBoxNo) {
+        this.weightBoxNo = weightBoxNo;
     }
 
     public String getRangeText() {

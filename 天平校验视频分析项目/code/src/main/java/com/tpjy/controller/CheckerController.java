@@ -3,6 +3,7 @@ package com.tpjy.controller;
 import com.tpjy.common.LoginUser;
 import com.tpjy.config.AppProps;
 import com.tpjy.dto.CurveData;
+import com.tpjy.dto.MassReading;
 import com.tpjy.dto.PageResult;
 import com.tpjy.dto.RecognitionResult;
 import com.tpjy.dto.RecognizeOptions;
@@ -78,8 +79,11 @@ public class CheckerController {
             RecognizeOptions opt = new RecognizeOptions();
             opt.setPersonName(user == null ? null : user.getRealName());
             opt.setBalanceCode(balance.getBalanceCode());
+            opt.setCheckDate(stored.getStoredAt());
             opt.setKnownBalanceCodes(balanceCodes());
             opt.setWeights(weightsOf(balance));
+            opt.setRange1CapacityGrams(capacityGrams(balance.getRange1()));
+            opt.setRange2CapacityGrams(capacityGrams(balance.getRange2()));
             opt.applyRangePrecisions(balance.getRange1Precision(), balance.getRange2Precision());
             opt.setPrecisionText(balance.getRange1Precision());
             opt.setManualValues(parseManualValues(manualValues));
@@ -159,6 +163,17 @@ public class CheckerController {
         weights.add(b.getWeightL2());
         weights.add(b.getWeightL3());
         return weights;
+    }
+
+    private static BigDecimal capacityGrams(String rangeText) {
+        if (rangeText == null || rangeText.trim().isEmpty() || "/".equals(rangeText.trim())) {
+            return null;
+        }
+        try {
+            return MassReading.parse(rangeText).getGrams();
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     static List<String> parseManualValues(String text) {

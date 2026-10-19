@@ -21,9 +21,13 @@ public class Reading {
     private String weightLevel;
     /** 该组砝码标称值（冗余，便于判定与曲线；限度绝不冗余）。 */
     private BigDecimal nominal;
-    /** 实测示值。 */
+    /** 统一换算后的实测示值（克），用于判定与曲线。 */
     private BigDecimal readingValue;
-    /** 测量时间（分钟级，存库、不印在导出 PDF）。 */
+    /** 天平上实际显示的数值文本，例如 200.0008 或 20000.8。 */
+    private String displayValue;
+    /** 实际显示单位：g / mg。 */
+    private String displayUnit;
+    /** 测量时间（分钟级，导出记录表按测量时间字段展示）。 */
     private Date measureTime;
     /** 本次示值是否在限度内：1 是 / 0 否。 */
     @TableField("is_qualified")
@@ -79,6 +83,22 @@ public class Reading {
 
     public void setReadingValue(BigDecimal readingValue) {
         this.readingValue = readingValue;
+    }
+
+    public String getDisplayValue() {
+        return displayValue;
+    }
+
+    public void setDisplayValue(String displayValue) {
+        this.displayValue = displayValue;
+    }
+
+    public String getDisplayUnit() {
+        return displayUnit;
+    }
+
+    public void setDisplayUnit(String displayUnit) {
+        this.displayUnit = displayUnit;
     }
 
     public Date getMeasureTime() {

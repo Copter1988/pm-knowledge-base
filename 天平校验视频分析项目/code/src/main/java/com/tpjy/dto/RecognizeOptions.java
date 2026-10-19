@@ -30,12 +30,17 @@ public class RecognizeOptions {
     private String precisionTextL1;
     private String precisionTextL2;
     private String precisionTextL3;
+    /** 天平量程容量（g），用于选择双量程中的精度档并检查砝码是否超量程。 */
+    private java.math.BigDecimal range1CapacityGrams;
+    private java.math.BigDecimal range2CapacityGrams;
     /** 9 个示值的人工补录/测试输入（按 seq 1~9 顺序；空表示完全依赖识别）。 */
     private List<String> manualValues = new ArrayList<String>();
     /** 抽帧图片输出目录（含视频号子目录）。 */
     private java.io.File frameOutputDir;
     /** 视频号，如 V-20260629-0043。 */
     private String videoNo;
+    /** 视频开始/校验日期，用于把帧秒数换算成测量年月日时分。 */
+    private java.util.Date checkDate;
 
     public String getPersonName() {
         return personName;
@@ -90,14 +95,41 @@ public class RecognizeOptions {
      * 双量程按 SRS 示例，L1 使用第一量程、L2/L3 使用第二量程。
      */
     public void applyRangePrecisions(String range1Precision, String range2Precision) {
-        expectedDigitsL1 = TpjyUtils.digitsOfPrecision(range1Precision);
-        precisionTextL1 = range1Precision;
+        int range1Digits = TpjyUtils.digitsOfPrecision(range1Precision);
         String lowerRange = range2Precision == null || range2Precision.trim().isEmpty()
                 ? range1Precision : range2Precision;
-        expectedDigitsL2 = TpjyUtils.digitsOfPrecision(lowerRange);
-        expectedDigitsL3 = expectedDigitsL2;
-        precisionTextL2 = lowerRange;
-        precisionTextL3 = lowerRange;
+        int range2Digits = TpjyUtils.digitsOfPrecision(lowerRange);
+        if (range2CapacityGrams == null || weights == null || weights.size() < 3) {
+            expectedDigitsL1 = range1Digits;
+            precisionTextL1 = range1Precision;
+            expectedDigitsL2 = range2Digits;
+            expectedDigitsL3 = range2Digits;
+            precisionTextL2 = lowerRange;
+            precisionTextL3 = lowerRange;
+            return;
+        }
+        applyLevelPrecision(1, weights.get(0), range1Digits, range1Precision, range2Digits, lowerRange);
+        applyLevelPrecision(2, weights.get(1), range1Digits, range1Precision, range2Digits, lowerRange);
+        applyLevelPrecision(3, weights.get(2), range1Digits, range1Precision, range2Digits, lowerRange);
+    }
+
+    private void applyLevelPrecision(int group, java.math.BigDecimal nominal,
+                                     int range1Digits, String range1Text,
+                                     int range2Digits, String range2Text) {
+        boolean useSecond = range2CapacityGrams != null && nominal != null
+                && nominal.compareTo(range2CapacityGrams) <= 0;
+        int digits = useSecond ? range2Digits : range1Digits;
+        String text = useSecond ? range2Text : range1Text;
+        if (group == 1) {
+            expectedDigitsL1 = digits;
+            precisionTextL1 = text;
+        } else if (group == 2) {
+            expectedDigitsL2 = digits;
+            precisionTextL2 = text;
+        } else {
+            expectedDigitsL3 = digits;
+            precisionTextL3 = text;
+        }
     }
 
     public int expectedDigitsForLevel(String level) {
@@ -111,6 +143,15 @@ public class RecognizeOptions {
             return expectedDigitsL3;
         }
         return expectedDigits;
+    }
+
+    /** 按实际显示单位换算应显示小数位：mg 显示比 g 显示少 3 位。 */
+    public int expectedDigitsForLevel(String level, String displayUnit) {
+        int gramsDigits = expectedDigitsForLevel(level);
+        if (gramsDigits < 0) {
+            return -1;
+        }
+        return "mg".equalsIgnoreCase(displayUnit) ? Math.max(0, gramsDigits - 3) : gramsDigits;
     }
 
     public String precisionTextForLevel(String level) {
@@ -162,6 +203,22 @@ public class RecognizeOptions {
         this.precisionTextL3 = precisionTextL3;
     }
 
+    public java.math.BigDecimal getRange1CapacityGrams() {
+        return range1CapacityGrams;
+    }
+
+    public void setRange1CapacityGrams(java.math.BigDecimal range1CapacityGrams) {
+        this.range1CapacityGrams = range1CapacityGrams;
+    }
+
+    public java.math.BigDecimal getRange2CapacityGrams() {
+        return range2CapacityGrams;
+    }
+
+    public void setRange2CapacityGrams(java.math.BigDecimal range2CapacityGrams) {
+        this.range2CapacityGrams = range2CapacityGrams;
+    }
+
     public List<String> getManualValues() {
         return manualValues;
     }
@@ -184,5 +241,13 @@ public class RecognizeOptions {
 
     public void setVideoNo(String videoNo) {
         this.videoNo = videoNo;
+    }
+
+    public java.util.Date getCheckDate() {
+        return checkDate;
+    }
+
+    public void setCheckDate(java.util.Date checkDate) {
+        this.checkDate = checkDate;
     }
 }
