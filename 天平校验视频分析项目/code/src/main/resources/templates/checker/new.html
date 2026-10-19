@@ -8,7 +8,7 @@
         <h2>导入校验视频</h2>
         <p class="muted">视频会先落盘，再由 ffmpeg 抽帧并用 ZXing 识别人二维码和天平二维码。示值 OCR 未接入时，可在这里人工补录 9 个示值。</p>
         <p class="error" th:if="${error}" th:text="${error}"></p>
-        <form class="form-grid" th:action="@{/checker/upload}" method="post" enctype="multipart/form-data">
+        <form id="uploadForm" class="form-grid" th:action="@{/checker/upload}" method="post" enctype="multipart/form-data">
             <label>选择天平</label>
             <select name="balanceId" required>
                 <option value="">请选择天平</option>
@@ -27,10 +27,31 @@
                       placeholder="200.0006g,199.9998g,200.0011g,50000.3mg,49999.7mg,50000.2mg,10000.1mg,10000.0mg,9999.9mg"></textarea>
 
             <div></div>
-            <button class="btn" type="submit">导入并识别</button>
+            <button id="uploadBtn" class="btn" type="submit">导入并识别</button>
         </form>
+        <p id="processingHint" class="notice" style="display:none">
+            正在抽帧并识别，5 分钟左右的视频通常需要 30～90 秒，请不要重复点击。
+        </p>
         <p class="notice">人员卡内容：PERSON:姓名；天平卡内容：BALANCE:天平编号。识别不到示值时会提示人工补录，不影响进入核对页。</p>
     </div>
 </div>
+<script th:inline="javascript">
+    (function () {
+        var submitted = false;
+        var form = document.getElementById('uploadForm');
+        var button = document.getElementById('uploadBtn');
+        var hint = document.getElementById('processingHint');
+        form.addEventListener('submit', function (event) {
+            if (submitted) {
+                event.preventDefault();
+                return;
+            }
+            submitted = true;
+            button.disabled = true;
+            button.textContent = '正在识别，请稍候…';
+            hint.style.display = 'block';
+        });
+    })();
+</script>
 </body>
 </html>

@@ -114,8 +114,8 @@ public class LocalCardOcrService implements CardOcrService {
         }
     }
 
-    private CardOcrResult parse(JsonNode root, List<String> knownBalanceCodes,
-                                String expectedPersonName) {
+    CardOcrResult parse(JsonNode root, List<String> knownBalanceCodes,
+                        String expectedPersonName) {
         CardOcrResult result = new CardOcrResult();
         result.setAvailable(true);
         result.setMethod("RapidOCR-local");
@@ -142,9 +142,8 @@ public class LocalCardOcrService implements CardOcrService {
                 Matcher cm = CODE_PATTERN.matcher(compact);
                 while (cm.find()) {
                     String code = cm.group(1);
-                    if (knownBalanceCodes != null && containsIgnoreCase(knownBalanceCodes, code)) {
-                        addBalance(balanceScores, code, score);
-                    }
+                    // 即使数据库清单为空，也先保留卡面编号；后续登记校验会给出明确提示。
+                    addBalance(balanceScores, code, score);
                 }
                 Matcher pm = PERSON_PATTERN.matcher(text);
                 if (pm.find() && result.getPersonName() == null) {
@@ -158,6 +157,15 @@ public class LocalCardOcrService implements CardOcrService {
             }
         }
         result.setRawText(allText.toString());
+        // OCR 常把单独一张卡识别成一行 “F002”；也兼容带空格/噪声的整段文本。
+        String flattened = allText.toString().toUpperCase(Locale.ROOT).replace(" ", "");
+        if (knownBalanceCodes != null) {
+            for (String known : knownBalanceCodes) {
+                if (known != null && flattened.contains(known.toUpperCase(Locale.ROOT))) {
+                    addBalance(balanceScores, known, 0.1);
+                }
+            }
+        }
         double best = Double.NEGATIVE_INFINITY;
         for (Map.Entry<String, Double> e : balanceScores.entrySet()) {
             if (e.getValue() > best) {
@@ -194,15 +202,6 @@ public class LocalCardOcrService implements CardOcrService {
         String normalized = code.toUpperCase(Locale.ROOT);
         Double old = scores.get(normalized);
         scores.put(normalized, old == null ? score : old + score);
-    }
-
-    private static boolean containsIgnoreCase(List<String> list, String value) {
-        for (String s : list) {
-            if (s != null && s.equalsIgnoreCase(value)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static String readAll(InputStream in) throws Exception {

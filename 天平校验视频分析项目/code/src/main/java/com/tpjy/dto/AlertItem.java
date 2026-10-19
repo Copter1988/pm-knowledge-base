@@ -7,6 +7,7 @@ package com.tpjy.dto;
  * BALANCE_NOT_FOUND 天平未登记或选错天平、
  * RANGE_MISMATCH 量程或精度对不上、
  * DIGIT_MISMATCH 读数位数不对、
+ * BALANCE_CARD_OCR / PERSON_CARD_OCR 文字身份卡 OCR 命中、
  * STANDBY_ZERO 待机零点、
  * UNSTABLE_READING 示值尚未稳定、
  * VALUE_INVALID 人工输入格式错误、

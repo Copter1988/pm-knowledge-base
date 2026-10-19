@@ -136,6 +136,14 @@ public class RecognitionService {
         } else {
             result.setIdentityMethod("人工指定");
         }
+        if (cardOcrUsed && balanceFromQr != null && !qrBalanceFound) {
+            result.addAlert("BALANCE_CARD_OCR", "INFO",
+                    "文字身份卡 OCR 已识别天平：" + balanceFromQr, null);
+        }
+        if (cardOcrUsed && personFromQr != null && !qrPersonFound) {
+            result.addAlert("PERSON_CARD_OCR", "INFO",
+                    "文字身份卡 OCR 已识别人员：" + personFromQr, null);
+        }
         String effectivePerson = personFromQr != null ? personFromQr : opt.getPersonName();
         String effectiveBalance = balanceFromQr != null ? balanceFromQr : opt.getBalanceCode();
         result.setEffectivePersonName(effectivePerson);
