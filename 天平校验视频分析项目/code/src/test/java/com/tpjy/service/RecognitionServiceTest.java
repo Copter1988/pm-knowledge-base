@@ -7,11 +7,13 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.tpjy.dto.AlertItem;
+import com.tpjy.dto.CardOcrResult;
 import com.tpjy.dto.RecognitionResult;
 import com.tpjy.dto.RecognizeOptions;
 import com.tpjy.dto.RecognizedReading;
 import com.tpjy.service.frame.Frame;
 import com.tpjy.service.frame.FrameExtractor;
+import com.tpjy.service.ocr.CardOcrService;
 import com.tpjy.service.ocr.NoopOcrService;
 import com.tpjy.service.qr.QrDecoder;
 import org.junit.jupiter.api.DisplayName;
@@ -63,6 +65,24 @@ class RecognitionServiceTest {
         @Override
         public String name() {
             return "stub";
+        }
+    }
+
+    private static class StubCardOcrService implements CardOcrService {
+        @Override
+        public CardOcrResult recognize(List<Frame> frames, List<String> knownBalanceCodes,
+                                       String expectedPersonName) {
+            CardOcrResult result = new CardOcrResult();
+            result.setAvailable(true);
+            result.setMethod("stub");
+            result.setBalanceCode("F002");
+            result.setRawText("F002");
+            return result;
+        }
+
+        @Override
+        public String name() {
+            return "stub-card-ocr";
         }
     }
 
@@ -224,6 +244,31 @@ class RecognitionServiceTest {
                 new StubFrameExtractor(frames(tmp, "李一", "F002")), new NoopOcrService(), 1)
                 .recognize(new File("stub.mp4"), over);
         assertTrue(result.hasAlert("RANGE_MISMATCH"), "200g 砝码超过 F002 的 120g 第一量程应提示");
+    }
+
+    @Test
+    @DisplayName("二维码缺失时用文字卡 OCR 识别天平编号")
+    void textCardFallback(@TempDir Path tmp) throws Exception {
+        RecognizeOptions opt = options(tmp, "李一", null, Arrays.asList("F001", "F002"));
+        List<Frame> plain = new ArrayList<Frame>();
+        for (int i = 0; i < 3; i++) {
+            BufferedImage img = new BufferedImage(300, 300, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = img.createGraphics();
+            g.setColor(Color.WHITE);
+            g.fillRect(0, 0, 300, 300);
+            g.dispose();
+            File file = new File(tmp.toFile(), "plain_" + i + ".jpg");
+            ImageIO.write(img, "jpg", file);
+            plain.add(new Frame(i, file));
+        }
+
+        RecognitionResult r = new RecognitionService(new StubFrameExtractor(plain),
+                new NoopOcrService(), 1, new StubCardOcrService())
+                .recognize(new File("stub.mp4"), opt);
+
+        assertEquals("F002", r.getBalanceFromQr());
+        assertEquals("F002", r.getEffectiveBalanceCode());
+        assertTrue(r.getIdentityMethod().contains("文字卡"));
     }
 
     // ---------------- 辅助 ----------------

@@ -21,7 +21,9 @@
                     <th>最终天平</th><td th:text="${result.effectiveBalanceCode ?: '未确定'}"></td></tr>
                 <tr><th>校验日期</th><td th:text="${result.checkDate ?: '-'}"></td>
                     <th>视频号</th><td th:text="${result.videoNo ?: '由记录管理模块生成'}"></td></tr>
+                <tr><th>身份识别方式</th><td colspan="3" th:text="${result.identityMethod ?: '-'}"></td></tr>
             </table>
+            <p class="muted" th:if="${result.cardOcrText != null}" th:text="|文字卡 OCR：${result.cardOcrText}|"></p>
 
             <video class="video" th:if="${videoUrl != null}" th:src="${videoUrl}" controls preload="metadata"></video>
 

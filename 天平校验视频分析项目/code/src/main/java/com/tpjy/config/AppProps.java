@@ -33,6 +33,18 @@ public class AppProps {
     private String pdfFontPath = "/fonts/simhei.ttf";
     /** 命令行测试输出目录。 */
     private String cliOutputDir = "./out";
+    /** 是否启用文字卡本地 OCR（RapidOCR）。 */
+    private boolean cardOcrEnabled = true;
+    /** Python 解释器路径；默认使用项目内 OCR 虚拟环境。 */
+    private String ocrPythonPath = "./.ocr-venv/Scripts/python.exe";
+    /** 本地 OCR bridge 脚本。 */
+    private String ocrWorkerPath = "./scripts/local_ocr_worker.py";
+    /** 单次视频最多 OCR 的帧数，控制总耗时。 */
+    private int cardOcrMaxFrames = 18;
+    /** 优先扫描视频前多少秒内的身份卡。 */
+    private int cardOcrWindowSeconds = 75;
+    /** 本地 OCR 子进程超时秒数。 */
+    private int cardOcrTimeoutSeconds = 90;
 
     /** 不依赖 Spring 的默认配置。 */
     public static AppProps defaults() {
@@ -125,5 +137,53 @@ public class AppProps {
 
     public void setCliOutputDir(String cliOutputDir) {
         this.cliOutputDir = cliOutputDir;
+    }
+
+    public boolean isCardOcrEnabled() {
+        return cardOcrEnabled;
+    }
+
+    public void setCardOcrEnabled(boolean cardOcrEnabled) {
+        this.cardOcrEnabled = cardOcrEnabled;
+    }
+
+    public String getOcrPythonPath() {
+        return ocrPythonPath;
+    }
+
+    public void setOcrPythonPath(String ocrPythonPath) {
+        this.ocrPythonPath = ocrPythonPath;
+    }
+
+    public String getOcrWorkerPath() {
+        return ocrWorkerPath;
+    }
+
+    public void setOcrWorkerPath(String ocrWorkerPath) {
+        this.ocrWorkerPath = ocrWorkerPath;
+    }
+
+    public int getCardOcrMaxFrames() {
+        return cardOcrMaxFrames;
+    }
+
+    public void setCardOcrMaxFrames(int cardOcrMaxFrames) {
+        this.cardOcrMaxFrames = cardOcrMaxFrames;
+    }
+
+    public int getCardOcrWindowSeconds() {
+        return cardOcrWindowSeconds;
+    }
+
+    public void setCardOcrWindowSeconds(int cardOcrWindowSeconds) {
+        this.cardOcrWindowSeconds = cardOcrWindowSeconds;
+    }
+
+    public int getCardOcrTimeoutSeconds() {
+        return cardOcrTimeoutSeconds;
+    }
+
+    public void setCardOcrTimeoutSeconds(int cardOcrTimeoutSeconds) {
+        this.cardOcrTimeoutSeconds = cardOcrTimeoutSeconds;
     }
 }

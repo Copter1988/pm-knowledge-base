@@ -86,7 +86,7 @@ public class DataInitializer implements CommandLineRunner {
         f1.setWeightL2(new BigDecimal("50"));
         f1.setWeightL3(new BigDecimal("10"));
         balanceMapper.insert(f1);
-        // 双量程 120g / 40g（0.1mg / 0.01mg）：100g、20g、2g
+        // 双量程 120g / 41g（0.1mg / 0.01mg，设备铭牌）：100g、20g、2g
         Balance f2 = new Balance();
         f2.setBalanceCode("F002");
         f2.setDept("化学室");
@@ -94,7 +94,7 @@ public class DataInitializer implements CommandLineRunner {
         f2.setRangeCount(2);
         f2.setRange1("120g");
         f2.setRange1Precision("0.1mg");
-        f2.setRange2("40g");
+        f2.setRange2("41g");
         f2.setRange2Precision("0.01mg");
         f2.setInternalCalib("自动触发");
         f2.setCheckFreq("每天");

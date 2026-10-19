@@ -2,12 +2,14 @@ package com.tpjy.service;
 
 import com.tpjy.common.Constants;
 import com.tpjy.dto.AlertItem;
+import com.tpjy.dto.CardOcrResult;
 import com.tpjy.dto.MassReading;
 import com.tpjy.dto.RecognitionResult;
 import com.tpjy.dto.RecognizeOptions;
 import com.tpjy.dto.RecognizedReading;
 import com.tpjy.service.frame.Frame;
 import com.tpjy.service.frame.FrameExtractor;
+import com.tpjy.service.ocr.CardOcrService;
 import com.tpjy.service.ocr.OcrService;
 import com.tpjy.service.qr.QrDecoder;
 import com.tpjy.util.TpjyUtils;
@@ -34,12 +36,19 @@ public class RecognitionService {
 
     private final FrameExtractor frameExtractor;
     private final OcrService ocrService;
+    private final CardOcrService cardOcrService;
     private final QrDecoder qrDecoder = new QrDecoder();
     private final int intervalSeconds;
 
     public RecognitionService(FrameExtractor frameExtractor, OcrService ocrService, int intervalSeconds) {
+        this(frameExtractor, ocrService, intervalSeconds, null);
+    }
+
+    public RecognitionService(FrameExtractor frameExtractor, OcrService ocrService,
+                              int intervalSeconds, CardOcrService cardOcrService) {
         this.frameExtractor = frameExtractor;
         this.ocrService = ocrService;
+        this.cardOcrService = cardOcrService;
         this.intervalSeconds = intervalSeconds <= 0 ? 1 : intervalSeconds;
     }
 
@@ -100,8 +109,33 @@ public class RecognitionService {
                 }
             }
         }
+        boolean qrPersonFound = personFromQr != null;
+        boolean qrBalanceFound = balanceFromQr != null;
+        boolean cardOcrUsed = false;
+        if (cardOcrService != null && (personFromQr == null || balanceFromQr == null)) {
+            CardOcrResult card = cardOcrService.recognize(frames, opt.getKnownBalanceCodes(),
+                    opt.getPersonName());
+            if (card != null && card.isAvailable()) {
+                result.setCardOcrText(card.getRawText());
+                if (personFromQr == null && card.getPersonName() != null) {
+                    personFromQr = card.getPersonName();
+                    cardOcrUsed = true;
+                }
+                if (balanceFromQr == null && card.getBalanceCode() != null) {
+                    balanceFromQr = card.getBalanceCode();
+                    cardOcrUsed = true;
+                }
+            }
+        }
         result.setPersonFromQr(personFromQr);
         result.setBalanceFromQr(balanceFromQr);
+        if (qrPersonFound || qrBalanceFound) {
+            result.setIdentityMethod(cardOcrUsed ? "二维码 + 文字卡 OCR" : "二维码");
+        } else if (cardOcrUsed) {
+            result.setIdentityMethod("文字卡 OCR");
+        } else {
+            result.setIdentityMethod("人工指定");
+        }
         String effectivePerson = personFromQr != null ? personFromQr : opt.getPersonName();
         String effectiveBalance = balanceFromQr != null ? balanceFromQr : opt.getBalanceCode();
         result.setEffectivePersonName(effectivePerson);
@@ -116,7 +150,7 @@ public class RecognitionService {
         }
         if (personFromQr == null) {
             result.addAlert("QR_MISSING", "INFO",
-                    "未识别到人员二维码卡片，已按当前登录/指定人员（" + (opt.getPersonName() == null ? "未指定" : opt.getPersonName()) + "）记录",
+                    "未识别到人员身份卡，已按当前登录/指定人员（" + (opt.getPersonName() == null ? "未指定" : opt.getPersonName()) + "）记录",
                     null);
         }
         if (balanceFromQr != null && opt.getKnownBalanceCodes() != null
@@ -128,7 +162,7 @@ public class RecognitionService {
         }
         if (balanceFromQr == null) {
             result.addAlert("QR_MISSING", "INFO",
-                    "未识别到天平二维码卡片，已按指定天平（" + (opt.getBalanceCode() == null ? "未指定" : opt.getBalanceCode()) + "）记录",
+                    "未识别到天平身份卡，已按指定天平（" + (opt.getBalanceCode() == null ? "未指定" : opt.getBalanceCode()) + "）记录",
                     null);
         }
         if (effectiveBalance != null && opt.getKnownBalanceCodes() != null

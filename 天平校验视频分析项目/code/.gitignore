@@ -2,6 +2,7 @@ target/
 upload/
 videos/
 backups/
+.ocr-venv/
 .idea/
 *.iml
 *.log

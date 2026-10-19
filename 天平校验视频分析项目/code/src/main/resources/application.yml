@@ -43,3 +43,9 @@ app:
   big-deviation-rate: "0.01"
   pdf-font-path: /fonts/simhei.ttf
   cli-output-dir: ./out
+  card-ocr-enabled: true
+  ocr-python-path: ./.ocr-venv/Scripts/python.exe
+  ocr-worker-path: ./scripts/local_ocr_worker.py
+  card-ocr-max-frames: 18
+  card-ocr-window-seconds: 75
+  card-ocr-timeout-seconds: 90

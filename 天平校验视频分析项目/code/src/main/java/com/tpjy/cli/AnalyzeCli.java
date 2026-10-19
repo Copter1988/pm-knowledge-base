@@ -1,5 +1,6 @@
 package com.tpjy.cli;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tpjy.common.Constants;
 import com.tpjy.config.AppProps;
 import com.tpjy.dto.CurveData;
@@ -19,6 +20,7 @@ import com.tpjy.service.RecognitionService;
 import com.tpjy.service.audit.FileAuditSink;
 import com.tpjy.service.frame.FrameExtractor;
 import com.tpjy.service.frame.FrameExtractors;
+import com.tpjy.service.ocr.LocalCardOcrService;
 import com.tpjy.service.ocr.NoopOcrService;
 import com.tpjy.service.ocr.OcrService;
 import com.tpjy.util.Json;
@@ -134,7 +136,10 @@ public final class AnalyzeCli {
         // 组装各部（全部离线，无需 Spring / 数据库）
         FrameExtractor extractor = FrameExtractors.create(props);
         OcrService ocr = new NoopOcrService();
-        RecognitionService recognitionService = new RecognitionService(extractor, ocr, props.getFrameInterval());
+        LocalCardOcrService cardOcr = props.isCardOcrEnabled()
+                ? new LocalCardOcrService(props, new ObjectMapper()) : null;
+        RecognitionService recognitionService = new RecognitionService(
+                extractor, ocr, props.getFrameInterval(), cardOcr);
         JudgeService judgeService = new JudgeService();
         AuditService auditService = new AuditService()
                 .addSink(new FileAuditSink(new File(outDir, "audit.log")));
@@ -157,6 +162,7 @@ public final class AnalyzeCli {
         System.out.println("抽帧总帧数: " + rr.getFrameCount());
         System.out.println("人员卡    : " + (rr.getPersonFromQr() == null ? "未识别到（按指定人员记录）" : rr.getPersonFromQr()));
         System.out.println("天平卡    : " + (rr.getBalanceFromQr() == null ? "未识别到（按指定天平记录）" : rr.getBalanceFromQr()));
+        System.out.println("身份方式  : " + rr.getIdentityMethod());
         System.out.println("识别耗时  : " + rr.getElapsedMillis() + " ms"
                 + (rr.getElapsedMillis() <= 120000 ? "（满足 ≤2 分钟）" : "（超出 2 分钟，需优化）"));
         if (!rr.getAlerts().isEmpty()) {
@@ -504,7 +510,7 @@ public final class AnalyzeCli {
                 "  --precision=0.1mg         第一量程精度，换算「应显示位数」做位数校验",
                 "  --precision2=0.01mg       双量程第二量程精度（L2/L3 使用；单量程可省略）",
                 "  --range1-capacity=220g    第一量程容量，用于超量程检查",
-                "  --range2-capacity=40g     双量程第二量程容量，用于选择细精度档",
+                "  --range2-capacity=41g     双量程第二量程容量，用于选择细精度档",
                 "  --digits=4                直接指定应显示位数（优先于 --precision）",
                 "  --known-balances=F001,F002 已登记天平清单，用于「天平未登记」提示",
                 "  --values=200.0006,199.9998,... 人工补录/模拟 9 个示值（noop OCR 时用它验证判定链）",

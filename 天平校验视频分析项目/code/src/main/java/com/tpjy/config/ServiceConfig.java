@@ -1,5 +1,6 @@
 package com.tpjy.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tpjy.mapper.AuditLogMapper;
 import com.tpjy.service.AuditService;
 import com.tpjy.service.CurveRenderer;
@@ -8,6 +9,8 @@ import com.tpjy.service.RecognitionService;
 import com.tpjy.service.audit.DbAuditSink;
 import com.tpjy.service.frame.FrameExtractor;
 import com.tpjy.service.frame.FrameExtractors;
+import com.tpjy.service.ocr.CardOcrService;
+import com.tpjy.service.ocr.LocalCardOcrService;
 import com.tpjy.service.ocr.NoopOcrService;
 import com.tpjy.service.ocr.OcrService;
 import org.springframework.context.annotation.Bean;
@@ -33,8 +36,14 @@ public class ServiceConfig {
     }
 
     @Bean
-    public RecognitionService recognitionService(FrameExtractor frameExtractor, OcrService ocrService, AppProps props) {
-        return new RecognitionService(frameExtractor, ocrService, props.getFrameInterval());
+    public RecognitionService recognitionService(FrameExtractor frameExtractor, OcrService ocrService,
+                                                 AppProps props, CardOcrService cardOcrService) {
+        return new RecognitionService(frameExtractor, ocrService, props.getFrameInterval(), cardOcrService);
+    }
+
+    @Bean
+    public CardOcrService localCardOcrService(AppProps props, ObjectMapper objectMapper) {
+        return new LocalCardOcrService(props, objectMapper);
     }
 
     @Bean

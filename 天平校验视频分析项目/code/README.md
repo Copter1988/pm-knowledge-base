@@ -2,7 +2,7 @@
 
 课程项目（第 1 组）。当前分支已合并成员甲的 4 个编码模块：
 视频导入与视觉识别、校验判定引擎、记录查询/曲线/PDF、留痕与审计。
-技术栈：Spring Boot 2.7 + Thymeleaf + MyBatis-Plus + MySQL 8 + ZXing + ffmpeg + Flying Saucer。
+技术栈：Spring Boot 2.7 + Thymeleaf + MyBatis-Plus + MySQL 8 + ZXing + ffmpeg + Flying Saucer + RapidOCR（本地文字卡 OCR）。
 
 ## 环境要求
 
@@ -10,6 +10,7 @@
 - Maven 3.6+
 - MySQL 8.0（本地或内网）
 - ffmpeg（本项目默认路径 `E:/ffmpeg/bin/ffmpeg.exe`，可在 `application.yml` 修改）
+- Python 3（可选，用于文字身份卡 OCR）
 
 ## 快速开始
 
@@ -69,7 +70,7 @@ code/
 ## 当前进度
 
 - ✅ 迭代 0：可运行骨架（登录 + 权限拦截 + 建表 + 演示数据）
-- ✅ 甲 1.3.2：视频上传/落盘、ffmpeg 抽帧、ZXing 身份卡识别、自动查对、9 次示值人工补录、g/mg 原屏单位保留与换算、提示定位
+- ✅ 甲 1.3.2：视频上传/落盘、ffmpeg 抽帧、ZXing 二维码 + RapidOCR 文字身份卡识别、自动查对、9 次示值人工补录、g/mg 原屏单位保留与换算、提示定位
 - ✅ 甲 1.3.5：限度实时计算、9 次逐项判定、前置条件一票否决、1% 较大误差预填、单/双量程归组
 - ✅ 甲 1.3.6：按天平/日期查询、L1/L2/L3 三张趋势图、复核记录记录表式 PDF 导出
 - ✅ 甲 1.3.8：五类审计 + 登录日志、审计双落地、视频 7 天自动清理与删除留痕
@@ -80,7 +81,15 @@ code/
 `OcrService` 按 SRS 保持可替换接口；默认 `NoopOcrService` 不读数字，导入页可人工补录 9 个示值。
 人工输入支持 `200.0008g` 或 `20000.8mg`：系统保留原屏数值/单位，换算为 g 后计算限度和判定。
 PDF 按记录表格式显示每次测量时间；趋势图为 L1/L2/L3 三个独立面板，纵轴默认放大到标称值 ±0.2%。
-当前 3 段实拍视频中的身份卡是印刷文字（如 F002/F001），没有可识读二维码，界面会提示 `QR_MISSING` 并允许手动选择天平。
+当前 3 段实拍视频中的身份卡是印刷文字 `F002/F001`。系统会先尝试二维码，再用本地 RapidOCR 读取文字卡；实测 video1 自动识别为 F002，整段处理约 62 秒。人员卡仍未出现在视频中，人员按登录账号/人工指定。
+
+首次使用文字卡 OCR：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-local-ocr.ps1
+```
+
+OCR 依赖位于被 Git 忽略的 `.ocr-venv/`，模型和识别都在本机运行，不上传视频。
 
 ## 自动化验证
 
@@ -88,7 +97,7 @@ PDF 按记录表格式显示每次测量时间；趋势图为 L1/L2/L3 三个独
 mvn -s mvn-settings.xml test
 ```
 
-2026-10-19 验证结果：**40 tests, 0 failures, 0 errors**。
+2026-10-19 验证结果：**41 tests, 0 failures, 0 errors**。
 测试使用 H2 内存数据库启动完整 Spring 上下文，并实际调用上传接口、ffmpeg、QR 识别、查询、曲线和 PDF 下载；不依赖本机 MySQL 密码。
 
 详细交接、接口边界和验收注意点见 `docs/甲模块交付说明.md`。

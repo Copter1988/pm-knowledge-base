@@ -19,6 +19,10 @@ public class RecognitionResult {
     private String effectivePersonName;
     /** 最终用于建记录的天平：二维码优先，其次页面/命令行指定。 */
     private String effectiveBalanceCode;
+    /** 身份识别方式：二维码 / 文字卡 OCR / 人工指定。 */
+    private String identityMethod;
+    /** 文字卡 OCR 原始文本，便于追溯。 */
+    private String cardOcrText;
     /** 抽帧总帧数。 */
     private int frameCount = 0;
     /** 抽帧间隔（秒）。 */
@@ -123,6 +127,22 @@ public class RecognitionResult {
 
     public void setEffectiveBalanceCode(String effectiveBalanceCode) {
         this.effectiveBalanceCode = effectiveBalanceCode;
+    }
+
+    public String getIdentityMethod() {
+        return identityMethod;
+    }
+
+    public void setIdentityMethod(String identityMethod) {
+        this.identityMethod = identityMethod;
+    }
+
+    public String getCardOcrText() {
+        return cardOcrText;
+    }
+
+    public void setCardOcrText(String cardOcrText) {
+        this.cardOcrText = cardOcrText;
     }
 
     public int getFrameCount() {
