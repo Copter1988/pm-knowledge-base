@@ -8,3 +8,5 @@ backups/
 *.log
 *.class
 .claude/
+__pycache__/
+*.pyc

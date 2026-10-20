@@ -3,13 +3,16 @@ package com.tpjy.service.ocr;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tpjy.config.AppProps;
+import com.tpjy.dto.AutoReading;
 import com.tpjy.dto.CardOcrResult;
+import com.tpjy.dto.RecognizeOptions;
 import com.tpjy.service.frame.Frame;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,7 +49,7 @@ public class LocalCardOcrService implements CardOcrService {
 
     @Override
     public CardOcrResult recognize(List<Frame> frames, List<String> knownBalanceCodes,
-                                   String expectedPersonName) {
+                                   String expectedPersonName, RecognizeOptions options) {
         if (!props.isCardOcrEnabled() || frames == null || frames.isEmpty()) {
             return CardOcrResult.unavailable();
         }
@@ -67,10 +70,24 @@ public class LocalCardOcrService implements CardOcrService {
                 images.add(item);
             }
             request.put("images", images);
+            request.put("readingImages", readingImages(selectReadingFrames(frames)));
             request.put("knownBalances", knownBalanceCodes == null
                     ? new ArrayList<String>() : knownBalanceCodes);
             request.put("personName", expectedPersonName);
             request.put("maxWidth", 480);
+            Map<String, Object> roi = new LinkedHashMap<String, Object>();
+            roi.put("x", 0.14);
+            roi.put("y", 0.665);
+            roi.put("width", 0.62);
+            roi.put("height", 0.095);
+            request.put("readingRoi", roi);
+            Map<String, Object> screenRoi = new LinkedHashMap<String, Object>();
+            screenRoi.put("x", 0.05);
+            screenRoi.put("y", 0.64);
+            screenRoi.put("width", 0.83);
+            screenRoi.put("height", 0.13);
+            request.put("screenRoi", screenRoi);
+            request.put("levels", levels(options));
 
             String json = mapper.writeValueAsString(request);
             ProcessBuilder pb = new ProcessBuilder(python.getAbsolutePath(), worker.getAbsolutePath());
@@ -107,7 +124,9 @@ public class LocalCardOcrService implements CardOcrService {
             if (!root.path("ok").asBoolean(false)) {
                 return CardOcrResult.unavailable();
             }
-            return parse(root, knownBalanceCodes, expectedPersonName);
+            CardOcrResult result = parse(root, knownBalanceCodes, expectedPersonName);
+            result.setAutoReadings(parseReadings(root));
+            return result;
         } catch (Exception e) {
             System.err.println("文字卡 OCR 失败：" + e.getMessage());
             return CardOcrResult.unavailable();
@@ -176,6 +195,57 @@ public class LocalCardOcrService implements CardOcrService {
         return result;
     }
 
+    private List<AutoReading> parseReadings(JsonNode root) {
+        List<AutoReading> list = new ArrayList<AutoReading>();
+        for (JsonNode item : root.path("readings")) {
+            AutoReading r = new AutoReading();
+            r.setSeq(item.path("seq").asInt());
+            r.setLevel(item.path("level").asText());
+            r.setRaw(item.path("raw").asText());
+            r.setUnit(item.path("unit").asText());
+            r.setGrams(new BigDecimal(item.path("grams").asText("0")));
+            r.setSecond(item.path("second").isMissingNode() || item.path("second").isNull()
+                    ? null : item.path("second").asInt());
+            r.setConfidence(item.path("confidence").asDouble());
+            r.setStableSamples(item.path("stableSamples").asInt());
+            r.setStableSeconds(item.path("stableSeconds").asInt());
+            list.add(r);
+        }
+        return list;
+    }
+
+    private List<Map<String, Object>> levels(RecognizeOptions options) {
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        if (options == null || options.getWeights() == null || options.getWeights().size() < 3) {
+            return result;
+        }
+        String[] names = new String[]{"L1", "L2", "L3"};
+        for (int i = 0; i < 3; i++) {
+            BigDecimal nominal = options.getWeights().get(i);
+            if (nominal == null) {
+                continue;
+            }
+            Map<String, Object> level = new LinkedHashMap<String, Object>();
+            level.put("level", names[i]);
+            level.put("nominal", nominal.toPlainString());
+            level.put("digitsG", Math.max(0, options.expectedDigitsForLevel(names[i], "g")));
+            level.put("digitsMg", Math.max(0, options.expectedDigitsForLevel(names[i], "mg")));
+            result.add(level);
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> readingImages(List<Frame> frames) {
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        for (Frame frame : frames) {
+            Map<String, Object> item = new LinkedHashMap<String, Object>();
+            item.put("path", frame.getFile().getAbsolutePath());
+            item.put("second", frame.getSecond());
+            result.add(item);
+        }
+        return result;
+    }
+
     private List<Frame> selectFrames(List<Frame> frames) {
         List<Frame> window = new ArrayList<Frame>();
         for (Frame f : frames) {
@@ -194,6 +264,19 @@ public class LocalCardOcrService implements CardOcrService {
         int step = Math.max(1, window.size() / max);
         for (int i = 0; i < window.size() && selected.size() < max; i += step) {
             selected.add(window.get(i));
+        }
+        return selected;
+    }
+
+    private List<Frame> selectReadingFrames(List<Frame> frames) {
+        int max = Math.max(1, props.getNumericOcrMaxFrames());
+        if (frames.size() <= max) {
+            return frames;
+        }
+        List<Frame> selected = new ArrayList<Frame>();
+        int step = (int) Math.ceil(frames.size() / (double) max);
+        for (int i = 0; i < frames.size() && selected.size() < max; i += step) {
+            selected.add(frames.get(i));
         }
         return selected;
     }

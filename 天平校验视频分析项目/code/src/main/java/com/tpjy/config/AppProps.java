@@ -41,10 +41,12 @@ public class AppProps {
     private String ocrWorkerPath = "./scripts/local_ocr_worker.py";
     /** 单次视频最多 OCR 的帧数，控制总耗时。 */
     private int cardOcrMaxFrames = 18;
+    /** 数字示值 OCR 最多处理的帧数。 */
+    private int numericOcrMaxFrames = 320;
     /** 优先扫描视频前多少秒内的身份卡。 */
     private int cardOcrWindowSeconds = 75;
     /** 本地 OCR 子进程超时秒数。 */
-    private int cardOcrTimeoutSeconds = 90;
+    private int cardOcrTimeoutSeconds = 150;
 
     /** 不依赖 Spring 的默认配置。 */
     public static AppProps defaults() {
@@ -169,6 +171,14 @@ public class AppProps {
 
     public void setCardOcrMaxFrames(int cardOcrMaxFrames) {
         this.cardOcrMaxFrames = cardOcrMaxFrames;
+    }
+
+    public int getNumericOcrMaxFrames() {
+        return numericOcrMaxFrames;
+    }
+
+    public void setNumericOcrMaxFrames(int numericOcrMaxFrames) {
+        this.numericOcrMaxFrames = numericOcrMaxFrames;
     }
 
     public int getCardOcrWindowSeconds() {

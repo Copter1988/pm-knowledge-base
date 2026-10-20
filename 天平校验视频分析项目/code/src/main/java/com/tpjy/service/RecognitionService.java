@@ -2,6 +2,7 @@ package com.tpjy.service;
 
 import com.tpjy.common.Constants;
 import com.tpjy.dto.AlertItem;
+import com.tpjy.dto.AutoReading;
 import com.tpjy.dto.CardOcrResult;
 import com.tpjy.dto.MassReading;
 import com.tpjy.dto.RecognitionResult;
@@ -112,17 +113,18 @@ public class RecognitionService {
         boolean qrPersonFound = personFromQr != null;
         boolean qrBalanceFound = balanceFromQr != null;
         boolean cardOcrUsed = false;
-        if (cardOcrService != null && (personFromQr == null || balanceFromQr == null)) {
-            CardOcrResult card = cardOcrService.recognize(frames, opt.getKnownBalanceCodes(),
-                    opt.getPersonName());
-            if (card != null && card.isAvailable()) {
-                result.setCardOcrText(card.getRawText());
-                if (personFromQr == null && card.getPersonName() != null) {
-                    personFromQr = card.getPersonName();
+        CardOcrResult cardOcr = null;
+        if (cardOcrService != null && !frames.isEmpty()) {
+            cardOcr = cardOcrService.recognize(frames, opt.getKnownBalanceCodes(),
+                    opt.getPersonName(), opt);
+            if (cardOcr != null && cardOcr.isAvailable()) {
+                result.setCardOcrText(cardOcr.getRawText());
+                if (personFromQr == null && cardOcr.getPersonName() != null) {
+                    personFromQr = cardOcr.getPersonName();
                     cardOcrUsed = true;
                 }
-                if (balanceFromQr == null && card.getBalanceCode() != null) {
-                    balanceFromQr = card.getBalanceCode();
+                if (balanceFromQr == null && cardOcr.getBalanceCode() != null) {
+                    balanceFromQr = cardOcr.getBalanceCode();
                     cardOcrUsed = true;
                 }
             }
@@ -232,6 +234,22 @@ public class RecognitionService {
                     result.addAlert(type, "INFO", message, frame.getSecond());
                 }
             }
+            if (r.getValue() == null && cardOcr != null) {
+                for (AutoReading auto : cardOcr.getAutoReadings()) {
+                    if (auto.getSeq() != seq || auto.getGrams() == null) {
+                        continue;
+                    }
+                    r.setRawValue(auto.getRaw());
+                    r.setDisplayUnit(auto.getUnit());
+                    r.setValue(auto.getGrams());
+                    r.setSecond(auto.getSecond());
+                    r.setClock(auto.getSecond() == null ? null : AlertItem.formatClock(auto.getSecond()));
+                    r.setMeasureTime(measureTime(checkDate, auto.getSecond()));
+                    r.setAutoRecognized(true);
+                    r.setOcrConfidence(auto.getConfidence());
+                    break;
+                }
+            }
             // 砝码标称值：按分组取
             if (opt.getWeights() != null && opt.getWeights().size() >= 3) {
                 BigDecimal nominal = new JudgeService().nominalOf(r.getLevel(),
@@ -249,6 +267,18 @@ public class RecognitionService {
             readings.add(r);
         }
         result.setReadings(readings);
+
+        int autoDetected = 0;
+        for (RecognizedReading r : readings) {
+            if (r.isAutoRecognized() && r.getValue() != null) {
+                autoDetected++;
+            }
+        }
+        if (autoDetected > 0) {
+            result.setOcrImpl("RapidOCR-local（数字示值）");
+            result.addAlert("AUTO_READING_OCR", "INFO",
+                    "本地数字 OCR 已自动预填 " + autoDetected + "/9 次稳定示值", null);
+        }
 
         // 5. 位数校验（规则 5：量程精度只约束读数位数，不参与 ±0.05% 判定）
         boolean digitsConfigured = opt.getExpectedDigits() >= 0

@@ -41,7 +41,7 @@
 
             <h3>9 次示值</h3>
             <table class="grid">
-                <tr><th>次别</th><th>组</th><th>标称值(g)</th><th>天平实际显示</th><th>换算值(g)</th><th>测量时间</th><th>人工改动</th></tr>
+                <tr><th>次别</th><th>组</th><th>标称值(g)</th><th>天平实际显示</th><th>换算值(g)</th><th>测量时间</th><th>识别来源</th><th>人工改动</th></tr>
                 <tr th:each="r : ${result.readings}">
                     <td th:text="${r.level + '-' + ((r.seq - 1) % 3 + 1)}"></td>
                     <td th:text="${r.level}"></td>
@@ -49,9 +49,17 @@
                     <td th:text="${r.rawValue == null ? '待补录' : r.rawValue + ' ' + r.displayUnit}"></td>
                     <td th:text="${r.value ?: '-'}"></td>
                     <td th:text="${r.measureTime ?: '-'}"></td>
+                    <td>
+                        <span class="badge info" th:if="${r.autoRecognized}">OCR 自动预填 · 待核对</span>
+                        <div class="muted" th:if="${r.autoRecognized}"
+                             th:text="|置信度 ${#numbers.formatDecimal(r.ocrConfidence * 100, 1, 1)}%|"></div>
+                        <span th:if="${!r.autoRecognized and r.rawValue != null}">人工/手动</span>
+                        <span th:if="${r.rawValue == null}">未识别</span>
+                    </td>
                     <td th:text="${r.changed} ? '是' : '否'"></td>
                 </tr>
             </table>
+            <p class="notice">标有“OCR 自动预填”的数值来自稳定平台识别。进入乙的记录管理模块后，检验人员仍应对照原视频完成最终核对。</p>
             <p class="notice">甲的识别链到此结束。后续“人工改值留痕、前置条件、提交复核”由记录管理模块（1.3.3，乙）接续。</p>
             <a class="btn" th:href="@{/checker/new}">再导入一个视频</a>
         </div>

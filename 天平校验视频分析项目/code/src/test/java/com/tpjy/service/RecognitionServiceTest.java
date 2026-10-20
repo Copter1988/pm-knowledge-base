@@ -10,6 +10,7 @@ import com.tpjy.dto.AlertItem;
 import com.tpjy.dto.CardOcrResult;
 import com.tpjy.dto.RecognitionResult;
 import com.tpjy.dto.RecognizeOptions;
+import com.tpjy.dto.AutoReading;
 import com.tpjy.dto.RecognizedReading;
 import com.tpjy.service.frame.Frame;
 import com.tpjy.service.frame.FrameExtractor;
@@ -71,7 +72,7 @@ class RecognitionServiceTest {
     private static class StubCardOcrService implements CardOcrService {
         @Override
         public CardOcrResult recognize(List<Frame> frames, List<String> knownBalanceCodes,
-                                       String expectedPersonName) {
+                                       String expectedPersonName, RecognizeOptions options) {
             CardOcrResult result = new CardOcrResult();
             result.setAvailable(true);
             result.setMethod("stub");
@@ -83,6 +84,42 @@ class RecognitionServiceTest {
         @Override
         public String name() {
             return "stub-card-ocr";
+        }
+    }
+
+    private static class AutoReadingCardOcrService implements CardOcrService {
+        @Override
+        public CardOcrResult recognize(List<Frame> frames, List<String> knownBalanceCodes,
+                                       String expectedPersonName, RecognizeOptions options) {
+            CardOcrResult result = new CardOcrResult();
+            result.setAvailable(true);
+            result.setMethod("stub-auto-reading");
+            result.setBalanceCode("F001");
+            result.setRawText("OCR auto readings");
+            String[] values = new String[]{
+                    "200.0006", "199.9998", "200.0011",
+                    "50.0003", "49.9997", "50.0002",
+                    "10.0001", "10.0000", "9.9999"
+            };
+            for (int i = 0; i < values.length; i++) {
+                AutoReading reading = new AutoReading();
+                reading.setSeq(i + 1);
+                reading.setLevel(i < 3 ? "L1" : (i < 6 ? "L2" : "L3"));
+                reading.setRaw(values[i]);
+                reading.setUnit("g");
+                reading.setGrams(new BigDecimal(values[i]));
+                reading.setSecond(i);
+                reading.setConfidence(0.96);
+                reading.setStableSamples(5);
+                reading.setStableSeconds(4);
+                result.getAutoReadings().add(reading);
+            }
+            return result;
+        }
+
+        @Override
+        public String name() {
+            return "stub-auto-reading";
         }
     }
 
@@ -269,6 +306,28 @@ class RecognitionServiceTest {
         assertEquals("F002", r.getBalanceFromQr());
         assertEquals("F002", r.getEffectiveBalanceCode());
         assertTrue(r.getIdentityMethod().contains("文字卡"));
+    }
+
+    @Test
+    @DisplayName("稳定示值 OCR 结果自动预填 9 次读数并保留原屏单位")
+    void automaticReadingsArePrefilled(@TempDir Path tmp) throws Exception {
+        RecognizeOptions opt = options(tmp, "李一", "F001", Arrays.asList("F001"));
+        opt.setWeights(Arrays.asList(
+                new BigDecimal("200"), new BigDecimal("50"), new BigDecimal("10")));
+        opt.setCheckDate(new java.util.Date(1782699300000L));
+
+        RecognitionResult r = new RecognitionService(
+                new StubFrameExtractor(frames(tmp, "李一", "F001")),
+                new NoopOcrService(), 1, new AutoReadingCardOcrService())
+                .recognize(new File("stub.mp4"), opt);
+
+        assertTrue(r.allReadingsPresent(), "自动 OCR 应预填全部 9 次示值");
+        assertFalse(r.hasAlert("OCR_MISSED"), "自动预填成功后不应再提示示值缺失");
+        assertTrue(r.hasAlert("AUTO_READING_OCR"));
+        assertEquals("200.0006", r.getReadings().get(0).getRawValue());
+        assertEquals("g", r.getReadings().get(0).getDisplayUnit());
+        assertTrue(r.getReadings().get(8).isAutoRecognized());
+        assertNotNull(r.getReadings().get(0).getMeasureTime());
     }
 
     // ---------------- 辅助 ----------------

@@ -1,5 +1,8 @@
 package com.tpjy.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** 身份卡文字 OCR 结果。 */
 public class CardOcrResult {
 
@@ -8,6 +11,7 @@ public class CardOcrResult {
     private String rawText;
     private String method;
     private boolean available;
+    private List<AutoReading> autoReadings = new ArrayList<AutoReading>();
 
     public static CardOcrResult unavailable() {
         CardOcrResult r = new CardOcrResult();
@@ -53,5 +57,13 @@ public class CardOcrResult {
 
     public void setAvailable(boolean available) {
         this.available = available;
+    }
+
+    public List<AutoReading> getAutoReadings() {
+        return autoReadings;
+    }
+
+    public void setAutoReadings(List<AutoReading> autoReadings) {
+        this.autoReadings = autoReadings;
     }
 }

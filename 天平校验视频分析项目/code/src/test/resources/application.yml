@@ -20,6 +20,7 @@ mybatis-plus:
       id-type: auto
 
 app:
+  card-ocr-enabled: false
   video-dir: ./target/test-upload/video
   frame-dir: ./target/test-upload/frame
   frame-extractor: ffmpeg

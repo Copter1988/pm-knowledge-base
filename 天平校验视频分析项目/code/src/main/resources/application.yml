@@ -47,5 +47,6 @@ app:
   ocr-python-path: ./.ocr-venv/Scripts/python.exe
   ocr-worker-path: ./scripts/local_ocr_worker.py
   card-ocr-max-frames: 18
+  numeric-ocr-max-frames: 320
   card-ocr-window-seconds: 75
-  card-ocr-timeout-seconds: 90
+  card-ocr-timeout-seconds: 150

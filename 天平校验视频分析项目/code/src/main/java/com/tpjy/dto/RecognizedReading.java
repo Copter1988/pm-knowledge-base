@@ -23,6 +23,9 @@ public class RecognizedReading {
     private Integer second;
     /** 是否被人工改动过（来自 read_trace）。 */
     private boolean changed;
+    /** 是否由本地数字 OCR 自动预填。 */
+    private boolean autoRecognized;
+    private double ocrConfidence;
 
     public int getSeq() {
         return seq;
@@ -102,5 +105,21 @@ public class RecognizedReading {
 
     public void setChanged(boolean changed) {
         this.changed = changed;
+    }
+
+    public boolean isAutoRecognized() {
+        return autoRecognized;
+    }
+
+    public void setAutoRecognized(boolean autoRecognized) {
+        this.autoRecognized = autoRecognized;
+    }
+
+    public double getOcrConfidence() {
+        return ocrConfidence;
+    }
+
+    public void setOcrConfidence(double ocrConfidence) {
+        this.ocrConfidence = ocrConfidence;
     }
 }

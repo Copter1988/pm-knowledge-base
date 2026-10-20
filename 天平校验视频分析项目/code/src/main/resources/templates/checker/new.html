@@ -6,7 +6,7 @@
 <div class="container">
     <div class="card">
         <h2>导入校验视频</h2>
-        <p class="muted">视频会先落盘，再由 ffmpeg 抽帧并用 ZXing 识别人二维码和天平二维码。示值 OCR 未接入时，可在这里人工补录 9 个示值。</p>
+        <p class="muted">视频会先落盘，再由 ffmpeg 抽帧，并使用本地模型识别身份卡、天平屏显和稳定示值。系统会自动预填 9 次读数，下方文本框仅用于覆盖或补录缺失值。</p>
         <p class="error" th:if="${error}" th:text="${error}"></p>
         <form id="uploadForm" class="form-grid" th:action="@{/checker/upload}" method="post" enctype="multipart/form-data">
             <label>选择天平</label>
@@ -22,9 +22,9 @@
             <label>视频号（可选）</label>
             <input type="text" name="videoNo" placeholder="例如 V-20260629-0043">
 
-            <label>9 次示值（可选，支持 g/mg）</label>
+            <label>9 次示值（通常留空；仅用于覆盖/补录，支持 g/mg）</label>
             <textarea name="manualValues" rows="3"
-                      placeholder="200.0006g,199.9998g,200.0011g,50000.3mg,49999.7mg,50000.2mg,10000.1mg,10000.0mg,9999.9mg"></textarea>
+                      placeholder="留空由 OCR 自动预填；人工补录示例：200.0006g,199.9998g,200.0011g,50.0003g,49.9997g,50.0002g,10.0001g,10.0000g,9.9999g"></textarea>
 
             <div></div>
             <button id="uploadBtn" class="btn" type="submit">导入并识别</button>
@@ -32,7 +32,7 @@
         <p id="processingHint" class="notice" style="display:none">
             正在抽帧并识别，5 分钟左右的视频通常需要 30～90 秒，请不要重复点击。
         </p>
-        <p class="notice">人员卡内容：PERSON:姓名；天平卡内容：BALANCE:天平编号。识别不到示值时会提示人工补录，不影响进入核对页。</p>
+        <p class="notice">人员卡内容：PERSON:姓名；天平卡内容：BALANCE:天平编号。OCR 只采用连续 1～2 秒不跳动的非零稳定值，并排除待机零值和负值；预填结果仍需检验人员核对。</p>
     </div>
 </div>
 <script th:inline="javascript">
