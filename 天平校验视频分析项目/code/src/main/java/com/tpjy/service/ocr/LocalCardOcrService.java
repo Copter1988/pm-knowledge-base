@@ -80,6 +80,8 @@ public class LocalCardOcrService implements CardOcrService {
             request.put("knownBalances", knownBalanceCodes == null
                     ? new ArrayList<String>() : knownBalanceCodes);
             request.put("personName", expectedPersonName);
+            request.put("expectedCheckerCardCode",
+                    options == null ? null : options.getExpectedCheckerCardCode());
             request.put("maxWidth", 480);
             Map<String, Object> roi = new LinkedHashMap<String, Object>();
             roi.put("x", 0.14);

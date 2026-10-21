@@ -4,9 +4,9 @@ package com.tpjy.dto;
  * 自动提示项（SRS §3.1.4 自动提示：四类问题）。
  * <p>type 取值：
  * PERSON_MISMATCH 拍摄人员与登录账号不一致、
+ * CHECKER_MISMATCH 校验员实体卡与登录账号不一致、
  * BALANCE_NOT_FOUND 天平未登记或选错天平、
  * RANGE_MISMATCH 量程或精度对不上、
- * DIGIT_MISMATCH 读数位数不对、
  * BALANCE_CARD_OCR / PERSON_CARD_OCR 文字身份卡 OCR 命中、
  * STANDBY_ZERO 待机零点、
  * UNSTABLE_READING 示值尚未稳定、

@@ -34,6 +34,16 @@ class LocalOcrWorkerTest(unittest.TestCase):
         self.assertIsNone(worker.parse_number("0.0000g"))
         self.assertIsNone(worker.parse_number("-0.0002g"))
 
+    def test_checker_card_code_is_detected_and_normalized(self):
+        frames = [{
+            "texts": [
+                {"text": "F002", "score": 0.95},
+                {"text": "JYOO2", "score": 0.96},
+            ]
+        }]
+
+        self.assertEqual("JY002", worker.detect_checker_card(frames))
+
     def test_three_stable_platforms_per_level_are_assigned_in_order(self):
         observations = []
         plan = [

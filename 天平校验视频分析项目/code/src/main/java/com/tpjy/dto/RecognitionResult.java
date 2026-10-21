@@ -31,8 +31,10 @@ public class RecognitionResult {
     private Boolean checkerCardMatched;
     /** 天平铭牌 OCR 识别到的双量程摘要。 */
     private String nameplateRangeText;
-    /** 位数校验采用的精度来源：天平铭牌 OCR 或数据库主数据。 */
+    /** 量程精度采用的来源：天平铭牌 OCR 或数据库主数据。 */
     private String precisionSource;
+    /** 发生身份阻断时直接展示给用户的结论。 */
+    private String blockingMessage;
     /** 抽帧总帧数。 */
     private int frameCount = 0;
     /** 抽帧间隔（秒）。 */
@@ -195,6 +197,14 @@ public class RecognitionResult {
 
     public void setPrecisionSource(String precisionSource) {
         this.precisionSource = precisionSource;
+    }
+
+    public String getBlockingMessage() {
+        return blockingMessage;
+    }
+
+    public void setBlockingMessage(String blockingMessage) {
+        this.blockingMessage = blockingMessage;
     }
 
     public int getFrameCount() {

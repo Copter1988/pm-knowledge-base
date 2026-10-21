@@ -515,7 +515,7 @@ public final class AnalyzeCli {
                 "  --checker-card=JY001      当前登录账号绑定的校验员实体卡号",
                 "  --balance=F001            选定的天平编号（视频无天平卡时按此记录）",
                 "  --weights=200,50,10       天平 L1/L2/L3 砝码标称值（g），判定与限度计算用",
-                "  --precision=0.1mg         第一量程精度，换算「应显示位数」做位数校验",
+                "  --precision=0.1mg         第一量程精度，用于与天平铭牌和数据库配置比对",
                 "  --precision2=0.01mg       双量程第二量程精度（L2/L3 使用；单量程可省略）",
                 "  --range1-capacity=220g    第一量程容量，用于超量程检查",
                 "  --range2-capacity=41g     双量程第二量程容量，用于选择细精度档",

@@ -18,7 +18,7 @@ public class RecognizeOptions {
     private List<String> knownBalanceCodes;
     /** 天平 L1/L2/L3 砝码标称值（g）。 */
     private List<java.math.BigDecimal> weights = new ArrayList<java.math.BigDecimal>();
-    /** 应显示的小数位数（由量程精度换算；-1 表示不校验位数）。 */
+    /** 量程精度换算后的显示位数（-1 表示未配置）。 */
     private int expectedDigits = -1;
     /** 量程精度原文，如 0.1mg（用于提示文案）。 */
     private String precisionText;

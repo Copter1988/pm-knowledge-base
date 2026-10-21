@@ -15,6 +15,7 @@ import numpy as np
 warnings.filterwarnings("ignore")
 
 NUMBER_RE = re.compile(r"[+-]?\d[\d,]*(?:\.\d+)?")
+CHECKER_CODE_RE = re.compile(r"\bJY([0-9OQDISBZL]{3,})\b")
 LEVEL_PATTERN = ("L1", "L1", "L1", "L2", "L2", "L2", "L3", "L3", "L3")
 OCR_CHAR_MAP = str.maketrans({
     "O": "0", "Q": "0", "D": "0",
@@ -30,6 +31,35 @@ def read_image(path):
     with open(path, "rb") as stream:
         return cv2.imdecode(np.frombuffer(stream.read(), dtype=np.uint8),
                             cv2.IMREAD_COLOR)
+
+
+def normalize_checker_code(value):
+    if not value:
+        return None
+    digits = str(value).upper().replace(" ", "")
+    if digits.startswith("JY"):
+        digits = digits[2:]
+    digits = (digits.replace("O", "0").replace("Q", "0").replace("D", "0")
+              .replace("I", "1").replace("L", "1").replace("Z", "2")
+              .replace("S", "5").replace("B", "8"))
+    return "JY" + digits
+
+
+def detect_checker_card(card_frames):
+    best_code = None
+    best_score = 0.0
+    for frame in card_frames:
+        for item in frame.get("texts") or []:
+            text = str(item.get("text") or "").upper().replace(" ", "")
+            match = CHECKER_CODE_RE.search(text)
+            if not match:
+                continue
+            code = normalize_checker_code(match.group(0))
+            score = float(item.get("score") or 0)
+            if score > best_score:
+                best_code = code
+                best_score = score
+    return best_code
 
 
 def crop_roi(image, roi):
@@ -367,6 +397,7 @@ def main():
     levels = request.get("levels") or []
     roi = request.get("readingRoi") or {}
     screen_roi = request.get("screenRoi") or {}
+    expected_checker = normalize_checker_code(request.get("expectedCheckerCardCode"))
     max_width = int(request.get("maxWidth") or 480)
 
     with contextlib.redirect_stdout(sys.stderr):
@@ -396,9 +427,19 @@ def main():
                         "box": [[round(float(x), 1), round(float(y), 1)] for x, y in box],
                     })
         card_frames.append({"path": path, "second": second, "texts": texts})
+        current_checker = detect_checker_card(card_frames)
+        if expected_checker and current_checker and current_checker != expected_checker:
+            # 身份已经足以判定不一致，不再扫描其余卡片或整段示值。
+            break
 
-    readings, observations = find_stable_readings(
-        reading_images, roi, screen_roi, levels, engine)
+    checker_code = detect_checker_card(card_frames)
+    early_checker_mismatch = bool(
+        expected_checker and checker_code and expected_checker != checker_code)
+    if early_checker_mismatch:
+        readings, observations = [], []
+    else:
+        readings, observations = find_stable_readings(
+            reading_images, roi, screen_roi, levels, engine)
     observation_dump = [
         {
             "second": item["second"],
@@ -412,6 +453,8 @@ def main():
         "frames": card_frames,
         "readings": readings,
         "observations": observation_dump,
+        "checkerCardCode": checker_code,
+        "earlyCheckerMismatch": early_checker_mismatch,
     }, ensure_ascii=False)
     sys.stdout.write(payload)
     sys.stdout.write("\n")

@@ -29,7 +29,7 @@ class TpjyUtilsTest {
     }
 
     @Test
-    @DisplayName("文本小数位数：10.001 → 3 位（界面原型的「位数不符」场景）")
+    @DisplayName("文本小数位数：10.001 → 3 位")
     void textDigits() {
         assertEquals(3, TpjyUtils.digitsOfText("10.001"));
         assertEquals(4, TpjyUtils.digitsOfText("200.0006"));

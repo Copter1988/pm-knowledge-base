@@ -209,12 +209,12 @@ class RecognitionServiceTest {
     }
 
     @Test
-    @DisplayName("人工补录 9 次示值后：读数齐备，且位数不符会提示（精度 0.1mg 应 4 位）")
+    @DisplayName("人工补录 9 次示值后：读数齐备并完成分组")
     void manualValuesAndDigitCheck(@TempDir Path tmp) throws Exception {
         List<String> values = Arrays.asList(
                 "200.0006", "199.9998", "200.0011",
                 "50.0003", "49.9997", "50.0002",
-                "10.001", "10.0000", "9.9999"); // 第 7 次只有 3 位小数 → 位数不符
+                "10.001", "10.0000", "9.9999");
         RecognizeOptions opt = options(tmp, "李一", "F001", Arrays.asList("F001"));
         opt.setManualValues(values);
         opt.setExpectedDigits(4);
@@ -226,7 +226,7 @@ class RecognitionServiceTest {
                 .recognize(new File("stub.mp4"), opt);
 
         assertTrue(r.allReadingsPresent(), "人工补录后 9 次示值应齐备");
-        assertTrue(r.hasAlert("DIGIT_MISMATCH"), "10.001 只有 3 位小数，应提示位数不符");
+        assertFalse(r.hasAlert("DIGIT_MISMATCH"), "已按要求取消位数不符提示");
         boolean levelOk = true;
         int i = 1;
         for (RecognizedReading rd : r.getReadings()) {
@@ -255,7 +255,7 @@ class RecognitionServiceTest {
                 new StubFrameExtractor(frames(tmp, "李一", "F001")), new NoopOcrService(), 1)
                 .recognize(new File("stub.mp4"), opt);
 
-        assertFalse(r.hasAlert("DIGIT_MISMATCH"), "L1 4 位、L2/L3 5 位应全部符合");
+        assertFalse(r.hasAlert("DIGIT_MISMATCH"));
 
         opt.setManualValues(Arrays.asList(
                 "200.0006", "199.9998", "200.0011",
@@ -264,7 +264,7 @@ class RecognitionServiceTest {
         RecognitionResult bad = new RecognitionService(
                 new StubFrameExtractor(frames(tmp, "李一", "F001")), new NoopOcrService(), 1)
                 .recognize(new File("stub.mp4"), opt);
-        assertTrue(bad.hasAlert("DIGIT_MISMATCH"), "L2/L3 仍按 4 位填写时应提示位数不符");
+        assertFalse(bad.hasAlert("DIGIT_MISMATCH"), "已按要求取消位数不符提示");
     }
 
     @Test
@@ -286,7 +286,7 @@ class RecognitionServiceTest {
         assertEquals("mg", r.getReadings().get(0).getDisplayUnit());
         assertEquals("200000.8", r.getReadings().get(0).getRawValue());
         assertEquals(0, new BigDecimal("200.0008").compareTo(r.getReadings().get(0).getValue()));
-        assertFalse(r.hasAlert("DIGIT_MISMATCH"), "200000.8 mg 是 1 位小数，应符合 0.1mg 精度");
+        assertFalse(r.hasAlert("DIGIT_MISMATCH"));
         assertNotNull(r.getReadings().get(0).getMeasureTime(), "应把帧时间换算为测量时间");
     }
 
@@ -396,6 +396,9 @@ class RecognitionServiceTest {
         assertEquals(Boolean.FALSE, r.getCheckerCardMatched());
         assertTrue(r.hasAlert("CHECKER_MISMATCH"));
         assertFalse(r.canCreateRecord());
+        assertEquals("视频检验员身份和登录身份不匹配，不予校验", r.getBlockingMessage());
+        assertTrue(r.getReadings().isEmpty(), "身份不匹配时应在示值识别前立即返回");
+        assertFalse(r.hasAlert("OCR_MISSED"), "身份阻断时不应再提示示值未识别");
     }
 
     @Test

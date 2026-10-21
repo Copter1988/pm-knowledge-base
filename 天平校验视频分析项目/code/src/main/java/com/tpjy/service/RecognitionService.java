@@ -80,7 +80,51 @@ public class RecognitionService {
         List<Frame> frames = frameExtractor.extract(video, frameDir);
         result.setFrameCount(frames.size());
 
-        // 2. 二维码：抽样扫描，人员卡与天平卡都找到即停
+        // 2. 身份优先：先读开头身份卡，校验员不匹配时不继续跑完整视频示值识别。
+        CardOcrResult cardOcr = null;
+        boolean cardOcrUsed = false;
+        if (cardOcrService != null && !frames.isEmpty()) {
+            cardOcr = cardOcrService.recognize(frames, opt.getKnownBalanceCodes(),
+                    opt.getPersonName(), opt);
+            if (cardOcr != null && cardOcr.isAvailable()) {
+                result.setCardOcrText(cardOcr.getRawText());
+                result.setExpectedCheckerCardCode(opt.getExpectedCheckerCardCode());
+                result.setCheckerCardCode(cardOcr.getCheckerCardCode());
+                checkCheckerCard(cardOcr, opt, result);
+                if (cardOcr.getCheckerCardCode() != null
+                        || cardOcr.getBalanceCode() != null
+                        || cardOcr.getPersonName() != null) {
+                    cardOcrUsed = true;
+                }
+                if (result.hasAlert("CHECKER_MISMATCH")
+                        || result.hasAlert("CHECKER_CARD_UNCONFIGURED")) {
+                    String cardBalance = cardOcr.getBalanceCode() != null
+                            ? cardOcr.getBalanceCode() : opt.getBalanceCode();
+                    String cardPerson = cardOcr.getPersonName() != null
+                            ? cardOcr.getPersonName() : opt.getPersonName();
+                    result.setPersonFromQr(cardOcr.getPersonName());
+                    result.setBalanceFromQr(cardOcr.getBalanceCode());
+                    result.setEffectivePersonName(cardPerson);
+                    result.setEffectiveBalanceCode(cardBalance);
+                    result.setIdentityMethod("文字卡 OCR");
+                    if (cardOcr.getBalanceCode() != null) {
+                        result.addAlert("BALANCE_CARD_OCR", "INFO",
+                                "文字身份卡 OCR 已识别天平：" + cardOcr.getBalanceCode(), null);
+                    }
+                    result.setBlockingMessage(result.hasAlert("CHECKER_MISMATCH")
+                            ? "视频检验员身份和登录身份不匹配，不予校验"
+                            : "当前登录校验员未配置身份卡，无法完成身份匹配，不予校验");
+                    result.setElapsedMillis(System.currentTimeMillis() - start);
+                    return result;
+                }
+            } else {
+                result.setExpectedCheckerCardCode(opt.getExpectedCheckerCardCode());
+                result.addAlert("CHECKER_CARD_MISSING", "WARN",
+                        "本地 OCR 未返回校验员卡结果，无法自动匹配当前登录校验员", null);
+            }
+        }
+
+        // 3. 身份卡匹配后再做二维码抽样扫描。
         String personFromQr = null;
         String balanceFromQr = null;
         Integer personSecond = null;
@@ -112,33 +156,19 @@ public class RecognitionService {
         }
         boolean qrPersonFound = personFromQr != null;
         boolean qrBalanceFound = balanceFromQr != null;
-        boolean cardOcrUsed = false;
-        CardOcrResult cardOcr = null;
-        if (cardOcrService != null && !frames.isEmpty()) {
-            cardOcr = cardOcrService.recognize(frames, opt.getKnownBalanceCodes(),
-                    opt.getPersonName(), opt);
-            if (cardOcr != null && cardOcr.isAvailable()) {
-                result.setCardOcrText(cardOcr.getRawText());
-                result.setExpectedCheckerCardCode(opt.getExpectedCheckerCardCode());
-                result.setCheckerCardCode(cardOcr.getCheckerCardCode());
-                checkCheckerCard(cardOcr, opt, result);
-                applyNameplateRanges(cardOcr, opt, result);
-                if (personFromQr == null && cardOcr.getPersonName() != null) {
-                    personFromQr = cardOcr.getPersonName();
-                    cardOcrUsed = true;
-                }
-                if (balanceFromQr == null && cardOcr.getBalanceCode() != null) {
-                    balanceFromQr = cardOcr.getBalanceCode();
-                    cardOcrUsed = true;
-                }
-                if (cardOcr.getCheckerCardCode() != null
-                        || cardOcr.hasCompleteNameplateRanges()) {
-                    cardOcrUsed = true;
-                }
-            } else {
-                result.setExpectedCheckerCardCode(opt.getExpectedCheckerCardCode());
-                result.addAlert("CHECKER_CARD_MISSING", "WARN",
-                        "本地 OCR 未返回校验员卡结果，无法自动匹配当前登录校验员", null);
+
+        if (cardOcr != null && cardOcr.isAvailable()) {
+            applyNameplateRanges(cardOcr, opt, result);
+            if (personFromQr == null && cardOcr.getPersonName() != null) {
+                personFromQr = cardOcr.getPersonName();
+                cardOcrUsed = true;
+            }
+            if (balanceFromQr == null && cardOcr.getBalanceCode() != null) {
+                balanceFromQr = cardOcr.getBalanceCode();
+                cardOcrUsed = true;
+            }
+            if (cardOcr.hasCompleteNameplateRanges()) {
+                cardOcrUsed = true;
             }
         }
         result.setPersonFromQr(personFromQr);
@@ -163,7 +193,7 @@ public class RecognitionService {
         result.setEffectivePersonName(effectivePerson);
         result.setEffectiveBalanceCode(effectiveBalance);
 
-        // 3. 自动查对：人员一致性 + 天平是否登记
+        // 4. 自动查对：人员一致性 + 天平是否登记
         if (personFromQr != null && opt.getPersonName() != null && !opt.getPersonName().trim().isEmpty()
                 && !personFromQr.trim().equals(opt.getPersonName().trim())) {
             result.addAlert("PERSON_MISMATCH", "WARN",
@@ -196,7 +226,7 @@ public class RecognitionService {
                     null);
         }
 
-        // 4. 9 次示值：OCR 预填（默认 Noop 返回 null → 人工补录），manualValues 优先
+        // 5. 9 次示值：OCR 预填（默认 Noop 返回 null → 人工补录），manualValues 优先
         List<RecognizedReading> readings = new ArrayList<RecognizedReading>();
         int manualIdx = 0;
         for (int seq = 1; seq <= 9; seq++) {
@@ -291,41 +321,6 @@ public class RecognitionService {
             result.setOcrImpl("RapidOCR-local（数字示值）");
             result.addAlert("AUTO_READING_OCR", "INFO",
                     "本地数字 OCR 已自动预填 " + autoDetected + "/9 次稳定示值", null);
-        }
-
-        // 5. 位数校验（规则 5：量程精度只约束读数位数，不参与 ±0.05% 判定）
-        boolean digitsConfigured = opt.getExpectedDigits() >= 0
-                || opt.getExpectedDigitsL1() >= 0
-                || opt.getExpectedDigitsL2() >= 0
-                || opt.getExpectedDigitsL3() >= 0;
-        if (digitsConfigured) {
-            int levelCount = 0;
-            for (RecognizedReading r : readings) {
-                int expectedDigits = opt.expectedDigitsForLevel(r.getLevel(), r.getDisplayUnit());
-                if (r.getRawValue() == null) {
-                    continue;
-                }
-                if (expectedDigits < 0) {
-                    continue;
-                }
-                levelCount++;
-                int digits = TpjyUtils.digitsOfText(r.getRawValue());
-                if (digits >= 0 && digits != expectedDigits) {
-                    String precision = opt.precisionTextForLevel(r.getLevel());
-                    result.addAlert("DIGIT_MISMATCH", "WARN",
-                            "第 " + r.getSeq() + " 次示值识别为 " + r.getRawValue() + "，精度 d = "
-                                    + (precision == null ? "?" : precision)
-                                    + " 在 " + r.getDisplayUnit() + " 显示下应为 " + expectedDigits
-                                    + " 位小数，可能存在量程 / 精度设置错误",
-                            r.getSecond());
-                }
-            }
-            if (levelCount == 0) {
-                result.addAlert("RANGE_MISMATCH", "INFO",
-                        "尚未拿到任何示值，无法校验读数位数（精度 d = "
-                                + (opt.getPrecisionText() == null ? "量程配置" : opt.getPrecisionText()) + "）",
-                        null);
-            }
         }
 
         // 6. 未识别到示值的兜底提示
