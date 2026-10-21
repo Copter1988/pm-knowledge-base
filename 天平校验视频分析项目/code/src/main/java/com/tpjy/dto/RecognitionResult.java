@@ -23,6 +23,16 @@ public class RecognitionResult {
     private String identityMethod;
     /** 文字卡 OCR 原始文本，便于追溯。 */
     private String cardOcrText;
+    /** 视频中识别到的校验员实体卡号。 */
+    private String checkerCardCode;
+    /** 当前登录账号绑定的校验员卡号。 */
+    private String expectedCheckerCardCode;
+    /** null=未识别到卡；true=匹配；false=不匹配。 */
+    private Boolean checkerCardMatched;
+    /** 天平铭牌 OCR 识别到的双量程摘要。 */
+    private String nameplateRangeText;
+    /** 位数校验采用的精度来源：天平铭牌 OCR 或数据库主数据。 */
+    private String precisionSource;
     /** 抽帧总帧数。 */
     private int frameCount = 0;
     /** 抽帧间隔（秒）。 */
@@ -56,6 +66,8 @@ public class RecognitionResult {
      */
     public boolean canCreateRecord() {
         return !hasAlert("PERSON_MISMATCH")
+                && !hasAlert("CHECKER_MISMATCH")
+                && !hasAlert("CHECKER_CARD_UNCONFIGURED")
                 && effectivePersonName != null && !effectivePersonName.trim().isEmpty()
                 && effectiveBalanceCode != null && !effectiveBalanceCode.trim().isEmpty();
     }
@@ -143,6 +155,46 @@ public class RecognitionResult {
 
     public void setCardOcrText(String cardOcrText) {
         this.cardOcrText = cardOcrText;
+    }
+
+    public String getCheckerCardCode() {
+        return checkerCardCode;
+    }
+
+    public void setCheckerCardCode(String checkerCardCode) {
+        this.checkerCardCode = checkerCardCode;
+    }
+
+    public String getExpectedCheckerCardCode() {
+        return expectedCheckerCardCode;
+    }
+
+    public void setExpectedCheckerCardCode(String expectedCheckerCardCode) {
+        this.expectedCheckerCardCode = expectedCheckerCardCode;
+    }
+
+    public Boolean getCheckerCardMatched() {
+        return checkerCardMatched;
+    }
+
+    public void setCheckerCardMatched(Boolean checkerCardMatched) {
+        this.checkerCardMatched = checkerCardMatched;
+    }
+
+    public String getNameplateRangeText() {
+        return nameplateRangeText;
+    }
+
+    public void setNameplateRangeText(String nameplateRangeText) {
+        this.nameplateRangeText = nameplateRangeText;
+    }
+
+    public String getPrecisionSource() {
+        return precisionSource;
+    }
+
+    public void setPrecisionSource(String precisionSource) {
+        this.precisionSource = precisionSource;
     }
 
     public int getFrameCount() {

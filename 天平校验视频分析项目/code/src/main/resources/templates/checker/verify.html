@@ -19,6 +19,15 @@
                     <th>最终人员</th><td th:text="${result.effectivePersonName ?: '未确定'}"></td></tr>
                 <tr><th>天平二维码</th><td th:text="${result.balanceFromQr ?: '未识别'}"></td>
                     <th>最终天平</th><td th:text="${result.effectiveBalanceCode ?: '未确定'}"></td></tr>
+                <tr><th>视频内校验员卡</th><td th:text="${result.checkerCardCode ?: '未识别'}"></td>
+                    <th>账号绑定卡</th><td th:text="${result.expectedCheckerCardCode ?: '未配置'}"></td></tr>
+                <tr><th>校验员卡匹配</th><td>
+                        <span class="badge ok" th:if="${result.checkerCardMatched == true}">匹配</span>
+                        <span class="badge bad" th:if="${result.checkerCardMatched == false}">不匹配</span>
+                        <span class="muted" th:if="${result.checkerCardMatched == null}">未识别，无法匹配</span>
+                    </td>
+                    <th>精度的采用来源</th><td th:text="${result.precisionSource ?: '数据库主数据'}"></td></tr>
+                <tr><th>天平铭牌量程</th><td colspan="3" th:text="${result.nameplateRangeText ?: '未完整识别，按数据库主数据执行'}"></td></tr>
                 <tr><th>校验日期</th><td th:text="${result.checkDate ?: '-'}"></td>
                     <th>视频号</th><td th:text="${result.videoNo ?: '由记录管理模块生成'}"></td></tr>
                 <tr><th>身份识别方式</th><td colspan="3" th:text="${result.identityMethod ?: '-'}"></td></tr>

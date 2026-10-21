@@ -116,11 +116,18 @@ public final class AnalyzeCli {
 
         RecognizeOptions opt = new RecognizeOptions();
         opt.setPersonName(a.get("person"));
+        opt.setExpectedCheckerCardCode(a.get("checker-card"));
         opt.setBalanceCode(a.get("balance"));
         opt.setCheckDate(checkDate);
         opt.setWeights(weights);
-        opt.setRange1CapacityGrams(parseCapacity(a.get("range1-capacity")));
-        opt.setRange2CapacityGrams(parseCapacity(a.get("range2-capacity")));
+        BigDecimal range1Capacity = parseCapacity(a.get("range1-capacity"));
+        BigDecimal range2Capacity = parseCapacity(a.get("range2-capacity"));
+        opt.setRange1CapacityGrams(range1Capacity);
+        opt.setRange2CapacityGrams(range2Capacity);
+        opt.setDatabaseRange1Precision(a.get("precision"));
+        opt.setDatabaseRange2Precision(a.get("precision2"));
+        opt.setDatabaseRange1CapacityGrams(range1Capacity);
+        opt.setDatabaseRange2CapacityGrams(range2Capacity);
         opt.setExpectedDigits(expectedDigits);
         opt.setPrecisionText(a.get("precision"));
         if (!a.containsKey("digits") && (a.containsKey("precision") || a.containsKey("precision2"))) {
@@ -505,6 +512,7 @@ public final class AnalyzeCli {
                 "",
                 "常用参数：",
                 "  --person=李一             当前检验人员姓名（用于「拍摄人员与登录账号一致」查对）",
+                "  --checker-card=JY001      当前登录账号绑定的校验员实体卡号",
                 "  --balance=F001            选定的天平编号（视频无天平卡时按此记录）",
                 "  --weights=200,50,10       天平 L1/L2/L3 砝码标称值（g），判定与限度计算用",
                 "  --precision=0.1mg         第一量程精度，换算「应显示位数」做位数校验",

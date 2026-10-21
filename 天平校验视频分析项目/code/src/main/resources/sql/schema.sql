@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS sys_user (
   username    VARCHAR(50)  NOT NULL,
   password    VARCHAR(100) NOT NULL,
   real_name   VARCHAR(50)  NOT NULL,
+  card_code   VARCHAR(20),
   role        VARCHAR(20)  NOT NULL,
   enabled     TINYINT      NOT NULL DEFAULT 1,
   created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,

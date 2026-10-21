@@ -16,6 +16,8 @@ public class SysUser {
     /** BCrypt 哈希，不存明文。 */
     private String password;
     private String realName;
+    /** 校验员实体卡号，如 JY001。 */
+    private String cardCode;
     private String role;
     private Integer enabled;
     private Date createdAt;
@@ -50,6 +52,14 @@ public class SysUser {
 
     public void setRealName(String realName) {
         this.realName = realName;
+    }
+
+    public String getCardCode() {
+        return cardCode;
+    }
+
+    public void setCardCode(String cardCode) {
+        this.cardCode = cardCode;
     }
 
     public String getRole() {

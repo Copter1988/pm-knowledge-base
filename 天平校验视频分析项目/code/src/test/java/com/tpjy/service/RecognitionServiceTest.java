@@ -123,6 +123,38 @@ class RecognitionServiceTest {
         }
     }
 
+    private static class CheckerCardOcrService implements CardOcrService {
+        private final String checkerCardCode;
+
+        CheckerCardOcrService(String checkerCardCode) {
+            this.checkerCardCode = checkerCardCode;
+        }
+
+        @Override
+        public CardOcrResult recognize(List<Frame> frames, List<String> knownBalanceCodes,
+                                       String expectedPersonName, RecognizeOptions options) {
+            CardOcrResult result = new CardOcrResult();
+            result.setAvailable(true);
+            result.setMethod("stub-checker-card");
+            result.setBalanceCode("F001");
+            result.setCheckerCardCode(checkerCardCode);
+            result.setCheckerCardConfidence(0.98);
+            result.setRawText("F001 | " + checkerCardCode
+                    + " | d=0.01mg(41g)0.1mg(120g)");
+            result.setNameplateRange1Precision("0.1mg");
+            result.setNameplateRange1Capacity(new BigDecimal("120"));
+            result.setNameplateRange2Precision("0.01mg");
+            result.setNameplateRange2Capacity(new BigDecimal("41"));
+            result.setNameplateConfidence(0.95);
+            return result;
+        }
+
+        @Override
+        public String name() {
+            return "stub-checker-card";
+        }
+    }
+
     private static QrDecoder decoder = new QrDecoder();
 
     @Test
@@ -328,6 +360,67 @@ class RecognitionServiceTest {
         assertEquals("g", r.getReadings().get(0).getDisplayUnit());
         assertTrue(r.getReadings().get(8).isAutoRecognized());
         assertNotNull(r.getReadings().get(0).getMeasureTime());
+    }
+
+    @Test
+    @DisplayName("校验员实体卡与登录账号一致时允许继续")
+    void checkerCardMatchesLoginUser(@TempDir Path tmp) throws Exception {
+        RecognizeOptions opt = options(tmp, "李一", "F001", Arrays.asList("F001"));
+        opt.setExpectedCheckerCardCode("JY001");
+        opt.setWeights(Arrays.asList(
+                new BigDecimal("200"), new BigDecimal("50"), new BigDecimal("10")));
+
+        RecognitionResult r = new RecognitionService(
+                new StubFrameExtractor(frames(tmp, "李一", "F001")),
+                new NoopOcrService(), 1, new CheckerCardOcrService("JY001"))
+                .recognize(new File("stub.mp4"), opt);
+
+        assertEquals(Boolean.TRUE, r.getCheckerCardMatched());
+        assertTrue(r.hasAlert("CHECKER_CARD_MATCH"));
+        assertTrue(r.canCreateRecord());
+    }
+
+    @Test
+    @DisplayName("校验员实体卡与登录账号不一致时阻断记录")
+    void checkerCardMismatchBlocksRecord(@TempDir Path tmp) throws Exception {
+        RecognizeOptions opt = options(tmp, "李一", "F001", Arrays.asList("F001"));
+        opt.setExpectedCheckerCardCode("JY001");
+        opt.setWeights(Arrays.asList(
+                new BigDecimal("200"), new BigDecimal("50"), new BigDecimal("10")));
+
+        RecognitionResult r = new RecognitionService(
+                new StubFrameExtractor(frames(tmp, "李一", "F001")),
+                new NoopOcrService(), 1, new CheckerCardOcrService("JY002"))
+                .recognize(new File("stub.mp4"), opt);
+
+        assertEquals(Boolean.FALSE, r.getCheckerCardMatched());
+        assertTrue(r.hasAlert("CHECKER_MISMATCH"));
+        assertFalse(r.canCreateRecord());
+    }
+
+    @Test
+    @DisplayName("铭牌双量程可读时与数据库比对并采用铭牌精度")
+    void nameplatePrecisionOverridesDatabaseAndWarnsMismatch(@TempDir Path tmp) throws Exception {
+        RecognizeOptions opt = options(tmp, "李一", "F001", Arrays.asList("F001"));
+        opt.setExpectedCheckerCardCode("JY001");
+        opt.setWeights(Arrays.asList(
+                new BigDecimal("100"), new BigDecimal("20"), new BigDecimal("2")));
+        opt.setRange1CapacityGrams(new BigDecimal("120"));
+        opt.setRange2CapacityGrams(new BigDecimal("41"));
+        opt.setDatabaseRange1Precision("0.1mg");
+        opt.setDatabaseRange2Precision("0.1mg");
+        opt.setDatabaseRange1CapacityGrams(new BigDecimal("120"));
+        opt.setDatabaseRange2CapacityGrams(new BigDecimal("41"));
+        opt.applyRangePrecisions("0.1mg", "0.1mg");
+
+        RecognitionResult r = new RecognitionService(
+                new StubFrameExtractor(frames(tmp, "李一", "F001")),
+                new NoopOcrService(), 1, new CheckerCardOcrService("JY001"))
+                .recognize(new File("stub.mp4"), opt);
+
+        assertTrue(r.hasAlert("BALANCE_NAMEPLATE_MISMATCH"));
+        assertEquals("天平铭牌 OCR", r.getPrecisionSource());
+        assertEquals(5, opt.expectedDigitsForLevel("L2", "g"));
     }
 
     // ---------------- 辅助 ----------------

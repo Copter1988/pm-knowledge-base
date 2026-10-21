@@ -5,6 +5,7 @@ import com.tpjy.config.AppProps;
 import com.tpjy.dto.CardOcrResult;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,16 +15,26 @@ class LocalCardOcrParseTest {
 
     @Test
     void extractsBalanceCodeFromNoisyWorkbookText() throws Exception {
-        String json = "{\"ok\":true,\"frames\":[{\"texts\":["
+        String json = "{\"ok\":true,\"frames\":["
+                + "{\"second\":10,\"texts\":["
                 + "{\"text\":\"25DMax120gd=0.01mg(41g)0.1mg(120g)\",\"score\":0.95},"
                 + "{\"text\":\"F002\",\"score\":0.94},"
-                + "{\"text\":\"JY002\",\"score\":0.90}"
-                + "]}]}";
+                + "{\"text\":\"JY002\",\"score\":0.90}]},"
+                + "{\"second\":11,\"texts\":["
+                + "{\"text\":\"25DMax120gd=0.01mg(41g)0.1mg(120g)\",\"score\":0.96}]},"
+                + "{\"second\":12,\"texts\":["
+                + "{\"text\":\"25DMax120gd=0.01mg(4.1g)0.1mg(120g)\",\"score\":0.99}]}"
+                + "]}";
         LocalCardOcrService service = new LocalCardOcrService(AppProps.defaults(), new ObjectMapper());
         CardOcrResult result = service.parse(new ObjectMapper().readTree(json),
                 Arrays.asList("F001", "F002"), "李一");
 
         assertTrue(result.isAvailable());
         assertEquals("F002", result.getBalanceCode());
+        assertEquals("JY002", result.getCheckerCardCode());
+        assertEquals("0.1mg", result.getNameplateRange1Precision());
+        assertEquals(0, new BigDecimal("120").compareTo(result.getNameplateRange1Capacity()));
+        assertEquals("0.01mg", result.getNameplateRange2Precision());
+        assertEquals(0, new BigDecimal("41").compareTo(result.getNameplateRange2Capacity()));
     }
 }

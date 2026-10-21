@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** 工具类测试：精度→位数换算（规则 5，只约束读数位数）、记录号/视频号格式。 */
 class TpjyUtilsTest {
@@ -21,6 +23,9 @@ class TpjyUtilsTest {
         assertEquals(2, TpjyUtils.digitsOfPrecision("0.01g"));
         assertEquals(-1, TpjyUtils.digitsOfPrecision(null));
         assertEquals(-1, TpjyUtils.digitsOfPrecision("abc"));
+        assertTrue(TpjyUtils.samePrecision("0.1mg", "0.0001g"));
+        assertTrue(TpjyUtils.samePrecision("0.01mg", "0.010mg"));
+        assertFalse(TpjyUtils.samePrecision("0.1mg", "0.01mg"));
     }
 
     @Test

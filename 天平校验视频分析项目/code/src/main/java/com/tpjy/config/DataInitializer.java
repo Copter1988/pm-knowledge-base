@@ -9,6 +9,8 @@ import com.tpjy.mapper.SysUserMapper;
 import com.tpjy.mapper.WeightBoxMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -31,29 +33,56 @@ public class DataInitializer implements CommandLineRunner {
     private BalanceMapper balanceMapper;
     @Resource
     private PasswordEncoder passwordEncoder;
+    @Resource
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) {
+        ensureUserCardCodeColumn();
+        backfillUserCardCodes();
         seedUsers();
         seedMasterData();
+    }
+
+    /** 兼容已存在的旧库：CREATE TABLE IF NOT EXISTS 不会补充新列。 */
+    private void ensureUserCardCodeColumn() {
+        try {
+            jdbcTemplate.execute("SELECT card_code FROM sys_user WHERE 1 = 0");
+        } catch (DataAccessException e) {
+            jdbcTemplate.execute("ALTER TABLE sys_user ADD COLUMN card_code VARCHAR(20) NULL");
+            log.info("已为 sys_user 增加 card_code 列");
+        }
+    }
+
+    private void backfillUserCardCodes() {
+        updateCardCode("liyi", "JY001");
+        updateCardCode("lier", "JY002");
+        updateCardCode("qiyi", "JY003");
+    }
+
+    private void updateCardCode(String username, String cardCode) {
+        jdbcTemplate.update("UPDATE sys_user SET card_code = ? "
+                        + "WHERE username = ? AND (card_code IS NULL OR TRIM(card_code) = '')",
+                cardCode, username);
     }
 
     private void seedUsers() {
         if (userMapper.selectCount(null) > 0) {
             return;
         }
-        userMapper.insert(buildUser("admin", "管理员", Constants.Role.ADMIN));
-        userMapper.insert(buildUser("liyi", "李一", Constants.Role.CHECKER));
-        userMapper.insert(buildUser("lier", "李二", Constants.Role.CHECKER));
-        userMapper.insert(buildUser("qiyi", "齐一", Constants.Role.REVIEWER));
+        userMapper.insert(buildUser("admin", "管理员", null, Constants.Role.ADMIN));
+        userMapper.insert(buildUser("liyi", "李一", "JY001", Constants.Role.CHECKER));
+        userMapper.insert(buildUser("lier", "李二", "JY002", Constants.Role.CHECKER));
+        userMapper.insert(buildUser("qiyi", "齐一", "JY003", Constants.Role.REVIEWER));
         log.info("已初始化演示账号（密码均为 123456）：admin / liyi / lier / qiyi");
     }
 
-    private SysUser buildUser(String username, String realName, String role) {
+    private SysUser buildUser(String username, String realName, String cardCode, String role) {
         SysUser u = new SysUser();
         u.setUsername(username);
         u.setPassword(passwordEncoder.encode("123456"));
         u.setRealName(realName);
+        u.setCardCode(cardCode);
         u.setRole(role);
         u.setEnabled(1);
         return u;

@@ -10,6 +10,8 @@ public class RecognizeOptions {
 
     /** 当前校验人员姓名（= 登录账号姓名），用于「拍摄人员与登录账号一致」查对。 */
     private String personName;
+    /** 当前登录账号绑定的校验员卡号，如 JY001。 */
+    private String expectedCheckerCardCode;
     /** 当前选定的天平编号（视频里没有天平卡时人工指定）。 */
     private String balanceCode;
     /** 已登记的天平编号清单，用于「天平未登记」提示；为空表示不做该校验。 */
@@ -20,6 +22,11 @@ public class RecognizeOptions {
     private int expectedDigits = -1;
     /** 量程精度原文，如 0.1mg（用于提示文案）。 */
     private String precisionText;
+    /** 数据库主数据中的量程配置，用于与视频铭牌 OCR 结果比对。 */
+    private String databaseRange1Precision;
+    private String databaseRange2Precision;
+    private java.math.BigDecimal databaseRange1CapacityGrams;
+    private java.math.BigDecimal databaseRange2CapacityGrams;
     /**
      * 双量程天平的逐组位数。默认 -1，表示回退到 {@link #expectedDigits}。
      * 示例：F002 第一量程 0.1mg → L1=4 位；第二量程 0.01mg → L2/L3=5 位。
@@ -48,6 +55,14 @@ public class RecognizeOptions {
 
     public void setPersonName(String personName) {
         this.personName = personName;
+    }
+
+    public String getExpectedCheckerCardCode() {
+        return expectedCheckerCardCode;
+    }
+
+    public void setExpectedCheckerCardCode(String expectedCheckerCardCode) {
+        this.expectedCheckerCardCode = expectedCheckerCardCode;
     }
 
     public String getBalanceCode() {
@@ -88,6 +103,38 @@ public class RecognizeOptions {
 
     public void setPrecisionText(String precisionText) {
         this.precisionText = precisionText;
+    }
+
+    public String getDatabaseRange1Precision() {
+        return databaseRange1Precision;
+    }
+
+    public void setDatabaseRange1Precision(String databaseRange1Precision) {
+        this.databaseRange1Precision = databaseRange1Precision;
+    }
+
+    public String getDatabaseRange2Precision() {
+        return databaseRange2Precision;
+    }
+
+    public void setDatabaseRange2Precision(String databaseRange2Precision) {
+        this.databaseRange2Precision = databaseRange2Precision;
+    }
+
+    public java.math.BigDecimal getDatabaseRange1CapacityGrams() {
+        return databaseRange1CapacityGrams;
+    }
+
+    public void setDatabaseRange1CapacityGrams(java.math.BigDecimal databaseRange1CapacityGrams) {
+        this.databaseRange1CapacityGrams = databaseRange1CapacityGrams;
+    }
+
+    public java.math.BigDecimal getDatabaseRange2CapacityGrams() {
+        return databaseRange2CapacityGrams;
+    }
+
+    public void setDatabaseRange2CapacityGrams(java.math.BigDecimal databaseRange2CapacityGrams) {
+        this.databaseRange2CapacityGrams = databaseRange2CapacityGrams;
     }
 
     /**

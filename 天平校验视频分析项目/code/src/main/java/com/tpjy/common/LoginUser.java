@@ -10,5 +10,6 @@ public class LoginUser implements Serializable {
     private Long userId;
     private String username;
     private String realName;
+    private String cardCode;
     private String role;
 }

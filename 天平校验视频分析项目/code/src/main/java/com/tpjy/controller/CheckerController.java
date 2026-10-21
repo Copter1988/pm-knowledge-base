@@ -78,12 +78,19 @@ public class CheckerController {
 
             RecognizeOptions opt = new RecognizeOptions();
             opt.setPersonName(user == null ? null : user.getRealName());
+            opt.setExpectedCheckerCardCode(user == null ? null : user.getCardCode());
             opt.setBalanceCode(balance.getBalanceCode());
             opt.setCheckDate(stored.getStoredAt());
             opt.setKnownBalanceCodes(balanceCodes());
             opt.setWeights(weightsOf(balance));
-            opt.setRange1CapacityGrams(capacityGrams(balance.getRange1()));
-            opt.setRange2CapacityGrams(capacityGrams(balance.getRange2()));
+            BigDecimal range1Capacity = capacityGrams(balance.getRange1());
+            BigDecimal range2Capacity = capacityGrams(balance.getRange2());
+            opt.setRange1CapacityGrams(range1Capacity);
+            opt.setRange2CapacityGrams(range2Capacity);
+            opt.setDatabaseRange1Precision(balance.getRange1Precision());
+            opt.setDatabaseRange2Precision(balance.getRange2Precision());
+            opt.setDatabaseRange1CapacityGrams(range1Capacity);
+            opt.setDatabaseRange2CapacityGrams(range2Capacity);
             opt.applyRangePrecisions(balance.getRange1Precision(), balance.getRange2Precision());
             opt.setPrecisionText(balance.getRange1Precision());
             opt.setManualValues(parseManualValues(manualValues));

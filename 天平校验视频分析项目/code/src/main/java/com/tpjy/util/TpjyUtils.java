@@ -18,12 +18,21 @@ public final class TpjyUtils {
      * @return 应显示位数；无法解析返回 -1
      */
     public static int digitsOfPrecision(String precision) {
-        if (precision == null) {
+        BigDecimal grams = precisionInGrams(precision);
+        if (grams == null) {
             return -1;
+        }
+        return Math.max(grams.stripTrailingZeros().scale(), 0);
+    }
+
+    /** 将 0.1mg / 0.01g 等分度值统一折算成克。 */
+    public static BigDecimal precisionInGrams(String precision) {
+        if (precision == null) {
+            return null;
         }
         String p = precision.trim().toLowerCase().replace(" ", "");
         if (p.isEmpty()) {
-            return -1;
+            return null;
         }
         try {
             BigDecimal grams;
@@ -35,13 +44,18 @@ public final class TpjyUtils {
                 grams = new BigDecimal(p);
             }
             if (grams.signum() <= 0) {
-                return -1;
+                return null;
             }
-            int digits = grams.stripTrailingZeros().scale();
-            return Math.max(digits, 0);
+            return grams;
         } catch (NumberFormatException e) {
-            return -1;
+            return null;
         }
+    }
+
+    public static boolean samePrecision(String left, String right) {
+        BigDecimal a = precisionInGrams(left);
+        BigDecimal b = precisionInGrams(right);
+        return a != null && b != null && a.compareTo(b) == 0;
     }
 
     /** 字符串里的小数位数（用于人工补录值的位数校验）。 */

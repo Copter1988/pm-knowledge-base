@@ -30,6 +30,7 @@ public class AuthService {
         lu.setUserId(user.getId());
         lu.setUsername(user.getUsername());
         lu.setRealName(user.getRealName());
+        lu.setCardCode(user.getCardCode());
         lu.setRole(user.getRole());
         return lu;
     }

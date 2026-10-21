@@ -15,6 +15,8 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -36,8 +38,12 @@ public class LocalCardOcrService implements CardOcrService {
             Pattern.compile("BALANCE\\s*[:：]?\\s*([A-Z]\\d{3,})", Pattern.CASE_INSENSITIVE);
     private static final Pattern PERSON_PATTERN =
             Pattern.compile("PERSON\\s*[:：]?\\s*([^|\\s]+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern CODE_PATTERN =
-            Pattern.compile("\\b([A-Z]\\d{3,})\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern BALANCE_CODE_PATTERN =
+            Pattern.compile("\\b(F\\d{3,})\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern CHECKER_CODE_PATTERN =
+            Pattern.compile("\\bJY([0-9OQDISBZL]{3,})\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern NAMEPLATE_PAIR_PATTERN =
+            Pattern.compile("([0-9]+(?:\\.[0-9]+)?)MG[\\(（\\[]?([0-9]+(?:\\.[0-9]+)?)G");
 
     private final AppProps props;
     private final ObjectMapper mapper;
@@ -139,9 +145,11 @@ public class LocalCardOcrService implements CardOcrService {
         result.setAvailable(true);
         result.setMethod("RapidOCR-local");
         Map<String, Double> balanceScores = new LinkedHashMap<String, Double>();
+        Map<String, RangeHit> rangeHits = new LinkedHashMap<String, RangeHit>();
         StringBuilder allText = new StringBuilder();
 
         for (JsonNode frame : root.path("frames")) {
+            Integer second = frame.path("second").isNumber() ? frame.path("second").asInt() : null;
             for (JsonNode item : frame.path("texts")) {
                 String text = item.path("text").asText("");
                 if (text.isEmpty()) {
@@ -158,11 +166,18 @@ public class LocalCardOcrService implements CardOcrService {
                 if (bm.find()) {
                     addBalance(balanceScores, bm.group(1), score + 1.0);
                 }
-                Matcher cm = CODE_PATTERN.matcher(compact);
-                while (cm.find()) {
-                    String code = cm.group(1);
-                    // 即使数据库清单为空，也先保留卡面编号；后续登记校验会给出明确提示。
-                    addBalance(balanceScores, code, score);
+                Matcher fm = BALANCE_CODE_PATTERN.matcher(compact);
+                while (fm.find()) {
+                    addBalance(balanceScores, fm.group(1), score);
+                }
+                Matcher jym = CHECKER_CODE_PATTERN.matcher(compact);
+                while (jym.find()) {
+                    String code = "JY" + normalizeCodeDigits(jym.group(1));
+                    if (score > result.getCheckerCardConfidence()) {
+                        result.setCheckerCardCode(code);
+                        result.setCheckerCardConfidence(score);
+                        result.setCheckerCardSecond(second);
+                    }
                 }
                 Matcher pm = PERSON_PATTERN.matcher(text);
                 if (pm.find() && result.getPersonName() == null) {
@@ -173,6 +188,7 @@ public class LocalCardOcrService implements CardOcrService {
                         && text.contains(expectedPersonName.trim())) {
                     result.setPersonName(expectedPersonName.trim());
                 }
+                collectNameplate(compact, score, second, rangeHits);
             }
         }
         result.setRawText(allText.toString());
@@ -192,7 +208,116 @@ public class LocalCardOcrService implements CardOcrService {
                 best = e.getValue();
             }
         }
+        applyNameplateRanges(result, rangeHits);
         return result;
+    }
+
+    private static void collectNameplate(String compact, double score, Integer second,
+                                         Map<String, RangeHit> hits) {
+        if (score < 0.55 || !compact.contains("MG")) {
+            return;
+        }
+        Matcher matcher = NAMEPLATE_PAIR_PATTERN.matcher(compact);
+        while (matcher.find()) {
+            try {
+                String precision = new BigDecimal(matcher.group(1)).stripTrailingZeros().toPlainString() + "mg";
+                BigDecimal capacity = new BigDecimal(matcher.group(2));
+                if (capacity.signum() <= 0) {
+                    continue;
+                }
+                String key = precision + "|" + capacity.stripTrailingZeros().toPlainString();
+                RangeHit old = hits.get(key);
+                if (old == null) {
+                    hits.put(key, new RangeHit(precision, capacity, score, second));
+                } else {
+                    old.observe(score, second);
+                }
+            } catch (NumberFormatException ignore) {
+                // OCR 噪声，继续扫描同一行中的其他量程对。
+            }
+        }
+    }
+
+    private static void applyNameplateRanges(CardOcrResult result, Map<String, RangeHit> hits) {
+        if (hits.isEmpty()) {
+            return;
+        }
+        List<RangeHit> candidates = new ArrayList<RangeHit>(hits.values());
+        List<RangeHit> repeated = new ArrayList<RangeHit>();
+        for (RangeHit hit : candidates) {
+            if (hit.count >= 2) {
+                repeated.add(hit);
+            }
+        }
+        List<RangeHit> ordered = repeated.size() >= 2
+                ? repeated : new ArrayList<RangeHit>(candidates);
+        Collections.sort(ordered, new Comparator<RangeHit>() {
+            @Override
+            public int compare(RangeHit left, RangeHit right) {
+                int byCount = Integer.compare(right.count, left.count);
+                return byCount != 0 ? byCount : Double.compare(right.score, left.score);
+            }
+        });
+        if (ordered.size() > 2) {
+            ordered = new ArrayList<RangeHit>(ordered.subList(0, 2));
+        }
+        Collections.sort(ordered, new Comparator<RangeHit>() {
+            @Override
+            public int compare(RangeHit left, RangeHit right) {
+                return left.capacity.compareTo(right.capacity);
+            }
+        });
+        RangeHit best = Collections.max(ordered, new Comparator<RangeHit>() {
+            @Override
+            public int compare(RangeHit left, RangeHit right) {
+                return Double.compare(left.score, right.score);
+            }
+        });
+        result.setNameplateConfidence(best.score);
+        result.setNameplateSecond(best.second);
+        if (ordered.size() == 1) {
+            RangeHit only = ordered.get(0);
+            result.setNameplateRange1Precision(only.precision);
+            result.setNameplateRange1Capacity(only.capacity);
+            return;
+        }
+        RangeHit first = ordered.get(ordered.size() - 1);
+        RangeHit second = ordered.get(0);
+        result.setNameplateRange1Precision(first.precision);
+        result.setNameplateRange1Capacity(first.capacity);
+        result.setNameplateRange2Precision(second.precision);
+        result.setNameplateRange2Capacity(second.capacity);
+    }
+
+    private static String normalizeCodeDigits(String value) {
+        return value.toUpperCase(Locale.ROOT)
+                .replace('O', '0').replace('Q', '0').replace('D', '0')
+                .replace('I', '1').replace('L', '1')
+                .replace('Z', '2').replace('S', '5').replace('B', '8');
+    }
+
+    private static final class RangeHit {
+        private final String precision;
+        private final BigDecimal capacity;
+        private double score;
+        private Integer second;
+        private int count;
+
+        private RangeHit(String precision, BigDecimal capacity, double score, Integer second) {
+            this.precision = precision;
+            this.capacity = capacity;
+            this.score = score;
+            this.second = second;
+            this.count = 1;
+        }
+
+        private void observe(double score, Integer second) {
+            count++;
+            if (score > this.score) {
+                this.score = score;
+                this.second = second;
+            }
+        }
     }
 
     private List<AutoReading> parseReadings(JsonNode root) {

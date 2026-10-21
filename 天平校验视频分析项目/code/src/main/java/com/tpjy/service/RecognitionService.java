@@ -119,6 +119,10 @@ public class RecognitionService {
                     opt.getPersonName(), opt);
             if (cardOcr != null && cardOcr.isAvailable()) {
                 result.setCardOcrText(cardOcr.getRawText());
+                result.setExpectedCheckerCardCode(opt.getExpectedCheckerCardCode());
+                result.setCheckerCardCode(cardOcr.getCheckerCardCode());
+                checkCheckerCard(cardOcr, opt, result);
+                applyNameplateRanges(cardOcr, opt, result);
                 if (personFromQr == null && cardOcr.getPersonName() != null) {
                     personFromQr = cardOcr.getPersonName();
                     cardOcrUsed = true;
@@ -127,6 +131,14 @@ public class RecognitionService {
                     balanceFromQr = cardOcr.getBalanceCode();
                     cardOcrUsed = true;
                 }
+                if (cardOcr.getCheckerCardCode() != null
+                        || cardOcr.hasCompleteNameplateRanges()) {
+                    cardOcrUsed = true;
+                }
+            } else {
+                result.setExpectedCheckerCardCode(opt.getExpectedCheckerCardCode());
+                result.addAlert("CHECKER_CARD_MISSING", "WARN",
+                        "本地 OCR 未返回校验员卡结果，无法自动匹配当前登录校验员", null);
             }
         }
         result.setPersonFromQr(personFromQr);
@@ -158,9 +170,10 @@ public class RecognitionService {
                     "拍摄人员（" + personFromQr + "）与登录账号（" + opt.getPersonName() + "）不一致，不予记录，请核对人员卡或改用本人账号",
                     personSecond);
         }
-        if (personFromQr == null) {
+        if (personFromQr == null && (cardOcr == null || cardOcr.getCheckerCardCode() == null)) {
             result.addAlert("QR_MISSING", "INFO",
-                    "未识别到人员身份卡，已按当前登录/指定人员（" + (opt.getPersonName() == null ? "未指定" : opt.getPersonName()) + "）记录",
+                    "未识别到人员二维码或校验员实体卡，已按当前登录/指定人员（"
+                            + (opt.getPersonName() == null ? "未指定" : opt.getPersonName()) + "）记录",
                     null);
         }
         if (balanceFromQr != null && opt.getKnownBalanceCodes() != null
@@ -330,6 +343,125 @@ public class RecognitionService {
 
         result.setElapsedMillis(System.currentTimeMillis() - start);
         return result;
+    }
+
+    private static void checkCheckerCard(CardOcrResult cardOcr, RecognizeOptions opt,
+                                         RecognitionResult result) {
+        String actual = normalizeCardCode(cardOcr.getCheckerCardCode());
+        String expected = normalizeCardCode(opt.getExpectedCheckerCardCode());
+        result.setCheckerCardCode(actual);
+        result.setExpectedCheckerCardCode(expected);
+        if (actual == null) {
+            result.setCheckerCardMatched(null);
+            result.addAlert("CHECKER_CARD_MISSING", "WARN",
+                    "未识别到校验员实体卡（如 JY001），无法自动确认当前操作人员", null);
+            return;
+        }
+
+        result.addAlert("CHECKER_CARD_OCR", "INFO",
+                "本地 OCR 已识别校验员卡：" + actual,
+                cardOcr.getCheckerCardSecond());
+        if (expected == null) {
+            result.setCheckerCardMatched(false);
+            result.addAlert("CHECKER_CARD_UNCONFIGURED", "WARN",
+                    "当前登录校验员未配置实体卡号，无法与视频中的 " + actual + " 自动匹配",
+                    cardOcr.getCheckerCardSecond());
+            return;
+        }
+        boolean matched = actual.equals(expected);
+        result.setCheckerCardMatched(matched);
+        if (matched) {
+            result.addAlert("CHECKER_CARD_MATCH", "INFO",
+                    "校验员卡 " + actual + " 与当前登录校验员一致",
+                    cardOcr.getCheckerCardSecond());
+        } else {
+            result.addAlert("CHECKER_MISMATCH", "WARN",
+                    "视频中的校验员卡为 " + actual + "，当前登录校验员绑定的卡为 " + expected
+                            + "，人员不一致，不予记录，请核对校验员卡或改用本人账号",
+                    cardOcr.getCheckerCardSecond());
+        }
+    }
+
+    private static void applyNameplateRanges(CardOcrResult cardOcr, RecognizeOptions opt,
+                                             RecognitionResult result) {
+        if (!cardOcr.hasCompleteNameplateRanges()) {
+            result.setPrecisionSource("数据库主数据");
+            result.addAlert("BALANCE_NAMEPLATE_NOT_FOUND", "INFO",
+                    "未完整识别到天平铭牌的双量程精度，按数据库主数据执行位数校验",
+                    cardOcr.getNameplateSecond());
+            return;
+        }
+
+        String range1Precision = cardOcr.getNameplateRange1Precision();
+        String range2Precision = cardOcr.getNameplateRange2Precision();
+        BigDecimal range1Capacity = cardOcr.getNameplateRange1Capacity();
+        BigDecimal range2Capacity = cardOcr.getNameplateRange2Capacity();
+        result.setNameplateRangeText(rangeSummary(range1Capacity, range1Precision,
+                range2Capacity, range2Precision));
+        result.setPrecisionSource("天平铭牌 OCR");
+
+        boolean compared = opt.getDatabaseRange1Precision() != null
+                || opt.getDatabaseRange2Precision() != null;
+        if (compared) {
+            boolean same = TpjyUtils.samePrecision(range1Precision,
+                    opt.getDatabaseRange1Precision())
+                    && TpjyUtils.samePrecision(range2Precision,
+                    opt.getDatabaseRange2Precision())
+                    && sameCapacity(range1Capacity, opt.getDatabaseRange1CapacityGrams())
+                    && sameCapacity(range2Capacity, opt.getDatabaseRange2CapacityGrams());
+            if (same) {
+                result.addAlert("BALANCE_NAMEPLATE_MATCH", "INFO",
+                        "天平铭牌量程与数据库配置一致（" + result.getNameplateRangeText() + "）",
+                        cardOcr.getNameplateSecond());
+            } else {
+                result.addAlert("BALANCE_NAMEPLATE_MISMATCH", "WARN",
+                        "天平铭牌量程与数据库配置不一致：铭牌=" + result.getNameplateRangeText()
+                                + "；数据库=" + rangeSummary(opt.getDatabaseRange1CapacityGrams(),
+                                opt.getDatabaseRange1Precision(), opt.getDatabaseRange2CapacityGrams(),
+                                opt.getDatabaseRange2Precision()),
+                        cardOcr.getNameplateSecond());
+            }
+        } else {
+            result.addAlert("BALANCE_NAMEPLATE_OCR", "INFO",
+                    "已从天平铭牌识别量程：" + result.getNameplateRangeText(),
+                    cardOcr.getNameplateSecond());
+        }
+
+        // 铭牌可读时以铭牌为准；不可读时前面已保留数据库配置。
+        opt.setRange1CapacityGrams(range1Capacity);
+        opt.setRange2CapacityGrams(range2Capacity);
+        opt.applyRangePrecisions(range1Precision, range2Precision);
+        opt.setPrecisionText(range1Precision);
+    }
+
+    private static boolean sameCapacity(BigDecimal left, BigDecimal right) {
+        return left == null || right == null || left.compareTo(right) == 0;
+    }
+
+    private static String rangeSummary(BigDecimal capacity1, String precision1,
+                                       BigDecimal capacity2, String precision2) {
+        StringBuilder text = new StringBuilder();
+        if (capacity1 != null || precision1 != null) {
+            text.append("第一量程 ");
+            text.append(capacity1 == null ? "?" : capacity1.stripTrailingZeros().toPlainString());
+            text.append("g / d=").append(precision1 == null ? "? " : precision1);
+        }
+        if (capacity2 != null || precision2 != null) {
+            if (text.length() > 0) {
+                text.append("；");
+            }
+            text.append("第二量程 ");
+            text.append(capacity2 == null ? "?" : capacity2.stripTrailingZeros().toPlainString());
+            text.append("g / d=").append(precision2 == null ? "?" : precision2);
+        }
+        return text.toString();
+    }
+
+    private static String normalizeCardCode(String code) {
+        if (code == null || code.trim().isEmpty()) {
+            return null;
+        }
+        return code.toUpperCase().replace(" ", "").trim();
     }
 
     private static String measureTime(Date checkDate, Integer second) {
