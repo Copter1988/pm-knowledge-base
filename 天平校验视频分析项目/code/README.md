@@ -102,7 +102,7 @@ mvn -s mvn-settings.xml test
 .\.ocr-venv\Scripts\python.exe .\scripts\test_local_ocr_worker.py
 ```
 
-2026-10-21 验证结果：Java **46 tests, 0 failures, 0 errors**；本地 OCR 解析/校验 **5 tests, OK**。
+2026-10-22 验证结果：Java **46 tests, 0 failures, 0 errors**；本地 OCR 解析/校验 **5 tests, OK**。
 测试使用 H2 内存数据库启动完整 Spring 上下文，并实际调用上传接口、ffmpeg、QR 识别、查询、曲线和 PDF 下载；不依赖本机 MySQL 密码。
 
 详细交接、接口边界和验收注意点见 `docs/甲模块交付说明.md`。
