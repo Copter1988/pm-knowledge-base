@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('天平主数据维护')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>天平主数据维护</h2>
+
+        <form class="form-grid" th:action="@{/admin/masterdata/add}" method="post">
+            <label>天平编号</label>
+            <input type="text" name="balanceCode" required>
+            <label>科室</label>
+            <input type="text" name="dept" required>
+            <label>唯一号</label>
+            <input type="text" name="uniqueNo" required>
+            <label>量程</label>
+            <input type="text" name="range1" placeholder="例如 220g" required>
+            <label>量程精度</label>
+            <input type="text" name="range1Precision" placeholder="例如 0.1mg" required>
+            <label>第二量程（可选，双量程）</label>
+            <input type="text" name="range2" placeholder="例如 41g">
+            <label>第二量程精度（可选）</label>
+            <input type="text" name="range2Precision" placeholder="例如 0.01mg">
+            <label>砝码 L1 (g)</label>
+            <input type="text" name="weightL1" required>
+            <label>砝码 L2 (g)</label>
+            <input type="text" name="weightL2" required>
+            <label>砝码 L3 (g)</label>
+            <input type="text" name="weightL3" required>
+            <div></div>
+            <button class="btn" type="submit">新增天平</button>
+        </form>
+
+        <table class="grid">
+            <thead>
+            <tr><th>编号</th><th>科室</th><th>量程</th><th>精度</th><th>L1/L2/L3 (g)</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="b : ${balances}">
+                <td th:text="${b.balanceCode}"></td>
+                <td th:text="${b.dept ?: '-'}"></td>
+                <td th:text="${b.range1 ?: '-'}"></td>
+                <td th:text="${b.range1Precision ?: '-'}"></td>
+                <td th:text="${b.weightL1} + ' / ' + ${b.weightL2} + ' / ' + ${b.weightL3}"></td>
+                <td>
+                    <a class="btn" th:href="@{/admin/masterdata/edit(id=${b.id})}">编辑</a>
+                    <form th:action="@{/admin/masterdata/delete}" method="post" style="display:inline">
+                        <input type="hidden" name="id" th:value="${b.id}">
+                        <button class="btn" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h3>砝码盒维护</h3>
+        <form class="form-grid" th:action="@{/admin/masterdata/weightbox/add}" method="post">
+            <label>盒号</label>
+            <input type="text" name="boxNo" required>
+            <label>备注</label>
+            <input type="text" name="remark" placeholder="可选">
+            <div></div>
+            <button class="btn" type="submit">新增砝码盒</button>
+        </form>
+        <table class="grid">
+            <thead>
+            <tr><th>盒号</th><th>备注</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="b : ${weightBoxes}">
+                <td th:text="${b.boxNo}"></td>
+                <td th:text="${b.remark ?: '-'}"></td>
+                <td>
+                    <form th:action="@{/admin/masterdata/weightbox/delete}" method="post" style="display:inline">
+                        <input type="hidden" name="id" th:value="${b.id}">
+                        <button class="btn" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

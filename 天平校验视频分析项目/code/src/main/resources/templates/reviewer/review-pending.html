@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('待复核确认')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>待复核确认</h2>
+        <p class="placeholder" th:if="${#lists.isEmpty(records)}">暂无待复核记录。</p>
+        <table class="grid" th:unless="${#lists.isEmpty(records)}">
+            <thead>
+            <tr><th>选择</th><th>记录号</th><th>天平</th><th>检验人</th><th>校验日期</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${records}">
+                <td><input type="checkbox" name="recordIds" th:value="${r.id}" form="batchForm"></td>
+                <td th:text="${r.recordNo}"></td>
+                <td th:text="${r.balanceCode ?: '-'}"></td>
+                <td th:text="${r.checkerName ?: '-'}"></td>
+                <td th:text="${r.checkDate != null ? #dates.format(r.checkDate, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                <td>
+                    <form th:action="@{/reviewer/review/confirm}" method="post" style="display:inline">
+                        <input type="hidden" name="recordId" th:value="${r.id}">
+                        <button class="btn" type="submit">确认</button>
+                    </form>
+                    <form th:action="@{/reviewer/review/reject}" method="post" style="display:inline">
+                        <input type="hidden" name="recordId" th:value="${r.id}">
+                        <input type="text" name="reason" placeholder="打回原因（可选）" size="20">
+                        <button class="btn" type="submit">打回</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <form id="batchForm" th:action="@{/reviewer/review/batch-confirm}" method="post"
+              th:if="${!#lists.isEmpty(records)}">
+            <button class="btn" type="submit">批量确认选中项</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

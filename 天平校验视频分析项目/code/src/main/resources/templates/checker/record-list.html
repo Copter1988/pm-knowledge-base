@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('我的记录')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>我的记录</h2>
+        <p class="placeholder" th:if="${#lists.isEmpty(records)}">暂无待复核/草稿记录。</p>
+        <table class="grid" th:unless="${#lists.isEmpty(records)}">
+            <thead>
+            <tr><th>记录号</th><th>天平</th><th>状态</th><th>校验日期</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${records}">
+                <td th:text="${r.recordNo}"></td>
+                <td th:text="${r.balanceCode ?: '-'}"></td>
+                <td th:text="${r.status}"></td>
+                <td th:text="${r.checkDate != null ? #dates.format(r.checkDate, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                <td>
+                    <form th:action="@{/checker/record/abandon}" method="post" style="display:inline">
+                        <input type="hidden" name="recordId" th:value="${r.id}">
+                        <input type="text" name="reason" placeholder="作废原因（可选）" size="15">
+                        <button class="btn" type="submit">作废</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p><a class="btn" th:href="@{/checker/record/import}">新建校验记录</a></p>
+    </div>
+</div>
+</body>
+</html>

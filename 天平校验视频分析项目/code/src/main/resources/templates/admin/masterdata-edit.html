@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('编辑天平')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>编辑天平</h2>
+        <form class="form-grid" th:action="@{/admin/masterdata/edit}" method="post">
+            <input type="hidden" name="id" th:value="${balance.id}">
+            <label>天平编号</label>
+            <input type="text" name="balanceCode" th:value="${balance.balanceCode}" required>
+            <label>科室</label>
+            <input type="text" name="dept" th:value="${balance.dept}" required>
+            <label>唯一号</label>
+            <input type="text" name="uniqueNo" th:value="${balance.uniqueNo}" required>
+            <label>量程</label>
+            <input type="text" name="range1" th:value="${balance.range1}" required>
+            <label>量程精度</label>
+            <input type="text" name="range1Precision" th:value="${balance.range1Precision}" required>
+            <label>第二量程（可选）</label>
+            <input type="text" name="range2" th:value="${balance.range2}">
+            <label>第二量程精度（可选）</label>
+            <input type="text" name="range2Precision" th:value="${balance.range2Precision}">
+            <label>砝码 L1 (g)</label>
+            <input type="text" name="weightL1" th:value="${balance.weightL1}" required>
+            <label>砝码 L2 (g)</label>
+            <input type="text" name="weightL2" th:value="${balance.weightL2}" required>
+            <label>砝码 L3 (g)</label>
+            <input type="text" name="weightL3" th:value="${balance.weightL3}" required>
+            <div></div>
+            <button class="btn" type="submit">保存修改</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

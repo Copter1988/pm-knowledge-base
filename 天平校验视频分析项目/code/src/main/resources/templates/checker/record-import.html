@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('新建校验记录')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>新建校验记录</h2>
+        <p class="muted">导入视频后系统会识别身份卡、天平铭牌与 9 次稳定示值，进入核对页可人工改值、填写前置条件并提交复核。</p>
+        <p class="error" th:if="${error}" th:text="${error}"></p>
+        <form id="uploadForm" class="form-grid" th:action="@{/checker/record/upload}" method="post" enctype="multipart/form-data">
+            <label>选择天平</label>
+            <select name="balanceId" required>
+                <option value="">请选择天平</option>
+                <option th:each="b : ${balances}" th:value="${b.id}"
+                        th:text="${b.balanceCode + ' · ' + b.range1 + ' · d ' + b.range1Precision}"></option>
+            </select>
+
+            <label>校验视频</label>
+            <input type="file" name="video" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm" required>
+
+            <label>视频号（可选）</label>
+            <input type="text" name="videoNo" placeholder="例如 V-20260629-0043">
+
+            <div></div>
+            <button id="uploadBtn" class="btn" type="submit">导入并识别</button>
+        </form>
+        <p id="processingHint" class="notice" style="display:none">正在抽帧并识别，通常需要 30～90 秒，请不要重复点击。</p>
+        <p class="notice">本页为记录管理入口（乙）。人员卡内容：PERSON:姓名；天平卡内容：BALANCE:天平编号。</p>
+    </div>
+</div>
+<script th:inline="javascript">
+    (function () {
+        var submitted = false;
+        var form = document.getElementById('uploadForm');
+        var button = document.getElementById('uploadBtn');
+        var hint = document.getElementById('processingHint');
+        form.addEventListener('submit', function (event) {
+            if (submitted) { event.preventDefault(); return; }
+            submitted = true;
+            button.disabled = true;
+            button.textContent = '正在识别，请稍候…';
+            hint.style.display = 'block';
+        });
+    })();
+</script>
+</body>
+</html>
