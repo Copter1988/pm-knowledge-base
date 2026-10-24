@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import javax.servlet.http.HttpSession;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -61,6 +62,33 @@ class AdminControllerTest {
         mvc.perform(post("/login").param("username", "lier").param("password", "123456"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("账号或密码错误")));
+    }
+
+    @Test
+    @DisplayName("编辑账号：改姓名、卡号、角色")
+    void editUser_updatesRealNameAndCardCode() throws Exception {
+        HttpSession admin = login("admin");
+        mvc.perform(post("/admin/users/add")
+                        .param("username", "editme")
+                        .param("realName", "编辑前")
+                        .param("role", "CHECKER")
+                        .param("cardCode", "JY088")
+                        .session((org.springframework.mock.web.MockHttpSession) admin))
+                .andExpect(status().is3xxRedirection());
+        SysUser u = userMapper.selectOne(new QueryWrapper<SysUser>().eq("username", "editme"));
+
+        mvc.perform(post("/admin/users/edit")
+                        .param("userId", String.valueOf(u.getId()))
+                        .param("realName", "编辑后")
+                        .param("cardCode", "JY099")
+                        .param("role", "REVIEWER")
+                        .session((org.springframework.mock.web.MockHttpSession) admin))
+                .andExpect(status().is3xxRedirection());
+
+        SysUser updated = userMapper.selectById(u.getId());
+        assertEquals("编辑后", updated.getRealName());
+        assertEquals("JY099", updated.getCardCode());
+        assertEquals("REVIEWER", updated.getRole());
     }
 
     private HttpSession login(String username) throws Exception {

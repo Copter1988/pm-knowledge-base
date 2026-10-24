@@ -62,15 +62,19 @@ public class ReviewerController {
     }
 
     @GetMapping("/curve")
-    public String curve(@RequestParam("recordId") Long recordId, Model model) {
-        try {
-            CurveData curve = queryService.curve(recordId);
-            File folder = new File("upload/curve");
-            File png = curveRenderer.render(curve, new File(folder, "reviewer-" + recordId + ".png"));
-            model.addAttribute("curve", curve);
-            model.addAttribute("curveImage", "/upload/curve/" + png.getName());
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+    public String curve(@RequestParam(value = "recordId", required = false) Long recordId, Model model) {
+        if (recordId != null) {
+            try {
+                CurveData curve = queryService.curve(recordId);
+                File folder = new File("upload/curve");
+                File png = curveRenderer.render(curve, new File(folder, "reviewer-" + recordId + ".png"));
+                model.addAttribute("curve", curve);
+                model.addAttribute("curveImage", "/upload/curve/" + png.getName());
+            } catch (Exception e) {
+                model.addAttribute("error", e.getMessage());
+            }
+        } else {
+            model.addAttribute("records", queryService.page(null, null, null, null, false, 1, 200).getList());
         }
         return "checker/curve";
     }

@@ -38,6 +38,7 @@
                 <td th:text="${u.cardCode ?: '-'}"></td>
                 <td th:text="${u.enabled == 1 ? '启用' : '停用'}"></td>
                 <td>
+                    <a class="btn" th:href="@{/admin/users/edit(id=${u.id})}">编辑</a>
                     <form th:action="@{/admin/users/disable}" method="post" style="display:inline" th:if="${u.enabled == 1}">
                         <input type="hidden" name="userId" th:value="${u.id}">
                         <button class="btn" type="submit">停用</button>

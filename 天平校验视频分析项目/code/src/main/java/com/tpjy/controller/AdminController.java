@@ -30,6 +30,27 @@ public class AdminController {
         return "admin/users";
     }
 
+    @GetMapping("/users/edit")
+    public String editForm(@RequestParam("id") Long id, Model model) {
+        model.addAttribute("user", userMapper.selectById(id));
+        return "admin/user-edit";
+    }
+
+    @PostMapping("/users/edit")
+    public String edit(@RequestParam("userId") Long userId,
+                       @RequestParam("realName") String realName,
+                       @RequestParam("role") String role,
+                       @RequestParam(value = "cardCode", required = false) String cardCode) {
+        SysUser u = userMapper.selectById(userId);
+        if (u != null) {
+            u.setRealName(realName);
+            u.setRole(role);
+            u.setCardCode(cardCode);
+            userMapper.updateById(u);
+        }
+        return "redirect:/admin/users";
+    }
+
     @PostMapping("/users/add")
     public String addUser(@RequestParam("username") String username,
                           @RequestParam("realName") String realName,

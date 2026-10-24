@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('编辑账号')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>编辑账号</h2>
+        <form class="form-grid" th:action="@{/admin/users/edit}" method="post">
+            <input type="hidden" name="userId" th:value="${user.id}">
+            <label>账号</label>
+            <input type="text" th:value="${user.username}" disabled>
+            <label>姓名</label>
+            <input type="text" name="realName" th:value="${user.realName}" required>
+            <label>角色</label>
+            <select name="role">
+                <option value="CHECKER" th:selected="${user.role == 'CHECKER'}">检验人员</option>
+                <option value="REVIEWER" th:selected="${user.role == 'REVIEWER'}">复核人员</option>
+                <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">管理员</option>
+            </select>
+            <label>校验员卡号</label>
+            <input type="text" name="cardCode" th:value="${user.cardCode}" placeholder="例如 JY001">
+            <div></div>
+            <button class="btn" type="submit">保存</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

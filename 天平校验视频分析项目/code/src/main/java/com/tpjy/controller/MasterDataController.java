@@ -1,6 +1,7 @@
 package com.tpjy.controller;
 
 import com.tpjy.entity.Balance;
+import com.tpjy.entity.RecordTemplate;
 import com.tpjy.entity.WeightBox;
 import com.tpjy.service.MasterDataService;
 import org.springframework.stereotype.Controller;
@@ -29,6 +30,7 @@ public class MasterDataController {
     public String list(Model model) {
         model.addAttribute("balances", masterDataService.listBalances());
         model.addAttribute("weightBoxes", masterDataService.listWeightBoxes());
+        model.addAttribute("templates", masterDataService.listTemplates());
         return "admin/masterdata";
     }
 
@@ -115,6 +117,76 @@ public class MasterDataController {
     @PostMapping("/weightbox/delete")
     public String deleteWeightBox(@RequestParam("id") Long id) {
         masterDataService.deleteWeightBox(id);
+        return "redirect:/admin/masterdata";
+    }
+
+    @GetMapping("/weightbox/edit")
+    public String editWeightBoxForm(@RequestParam("id") Long id, Model model) {
+        model.addAttribute("box", masterDataService.getWeightBox(id));
+        return "admin/weightbox-edit";
+    }
+
+    @PostMapping("/weightbox/edit")
+    public String editWeightBox(@RequestParam("id") Long id,
+                                @RequestParam("boxNo") String boxNo,
+                                @RequestParam(value = "remark", required = false) String remark) {
+        WeightBox box = masterDataService.getWeightBox(id);
+        if (box != null) {
+            box.setBoxNo(boxNo);
+            box.setRemark(remark);
+            masterDataService.updateWeightBox(box);
+        }
+        return "redirect:/admin/masterdata";
+    }
+
+    @PostMapping("/template/add")
+    public String addTemplate(@RequestParam("fieldKey") String fieldKey,
+                              @RequestParam("fieldLabel") String fieldLabel,
+                              @RequestParam(value = "sortNo", required = false) Integer sortNo) {
+        RecordTemplate t = new RecordTemplate();
+        t.setFieldKey(fieldKey);
+        t.setFieldLabel(fieldLabel);
+        t.setVisible(1);
+        t.setRequired(0);
+        t.setSortNo(sortNo == null ? 0 : sortNo);
+        masterDataService.createTemplate(t);
+        return "redirect:/admin/masterdata";
+    }
+
+    @PostMapping("/template/delete")
+    public String deleteTemplate(@RequestParam("id") Long id) {
+        masterDataService.deleteTemplate(id);
+        return "redirect:/admin/masterdata";
+    }
+
+    @PostMapping("/template/toggle-visible")
+    public String toggleTemplateVisible(@RequestParam("id") Long id) {
+        RecordTemplate t = masterDataService.getTemplate(id);
+        if (t != null) {
+            t.setVisible(t.getVisible() == null || t.getVisible() == 0 ? 1 : 0);
+            masterDataService.updateTemplate(t);
+        }
+        return "redirect:/admin/masterdata";
+    }
+
+    @GetMapping("/template/edit")
+    public String editTemplateForm(@RequestParam("id") Long id, Model model) {
+        model.addAttribute("template", masterDataService.getTemplate(id));
+        return "admin/template-edit";
+    }
+
+    @PostMapping("/template/edit")
+    public String editTemplate(@RequestParam("id") Long id,
+                               @RequestParam("fieldLabel") String fieldLabel,
+                               @RequestParam(value = "required", required = false, defaultValue = "0") Integer required,
+                               @RequestParam(value = "sortNo", required = false, defaultValue = "0") Integer sortNo) {
+        RecordTemplate t = masterDataService.getTemplate(id);
+        if (t != null) {
+            t.setFieldLabel(fieldLabel);
+            t.setRequired(required);
+            t.setSortNo(sortNo);
+            masterDataService.updateTemplate(t);
+        }
         return "redirect:/admin/masterdata";
     }
 

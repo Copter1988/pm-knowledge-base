@@ -1,8 +1,10 @@
 package com.tpjy.service;
 
 import com.tpjy.entity.Balance;
+import com.tpjy.entity.RecordTemplate;
 import com.tpjy.entity.WeightBox;
 import com.tpjy.mapper.BalanceMapper;
+import com.tpjy.mapper.RecordTemplateMapper;
 import com.tpjy.mapper.WeightBoxMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,8 @@ class MasterDataServiceTest {
     private BalanceMapper balanceMapper;
     @Autowired
     private WeightBoxMapper weightBoxMapper;
+    @Autowired
+    private RecordTemplateMapper templateMapper;
 
     @Test
     @DisplayName("新增天平：落库且砝码标称值正确（大写 L 列）")
@@ -86,6 +90,66 @@ class MasterDataServiceTest {
         masterDataService.createWeightBox(box);
         masterDataService.deleteWeightBox(box.getId());
         assertNull(weightBoxMapper.selectById(box.getId()), "删除后砝码盒应不存在");
+    }
+
+    @Test
+    @DisplayName("编辑砝码盒：改盒号与备注")
+    void updateWeightBox_updatesRemark() {
+        WeightBox box = new WeightBox();
+        box.setBoxNo("FM2512997");
+        box.setRemark("原备注");
+        masterDataService.createWeightBox(box);
+
+        box.setBoxNo("FM2512996");
+        box.setRemark("新备注");
+        masterDataService.updateWeightBox(box);
+
+        WeightBox loaded = weightBoxMapper.selectById(box.getId());
+        assertEquals("FM2512996", loaded.getBoxNo());
+        assertEquals("新备注", loaded.getRemark());
+    }
+
+    @Test
+    @DisplayName("新增模板字段：落库")
+    void createTemplate_persists() {
+        RecordTemplate t = new RecordTemplate();
+        t.setFieldKey("record_no");
+        t.setFieldLabel("记录号");
+        t.setVisible(1);
+        t.setRequired(1);
+        t.setSortNo(1);
+        masterDataService.createTemplate(t);
+        assertNotNull(t.getId(), "新增后应回填主键");
+        assertEquals("记录号", templateMapper.selectById(t.getId()).getFieldLabel());
+    }
+
+    @Test
+    @DisplayName("修改模板字段：显隐/顺序更新")
+    void updateTemplate_updatesVisibility() {
+        RecordTemplate t = new RecordTemplate();
+        t.setFieldKey("remark");
+        t.setFieldLabel("备注");
+        t.setVisible(1);
+        masterDataService.createTemplate(t);
+
+        t.setVisible(0);
+        t.setSortNo(9);
+        masterDataService.updateTemplate(t);
+
+        RecordTemplate loaded = templateMapper.selectById(t.getId());
+        assertEquals(0, loaded.getVisible());
+        assertEquals(9, loaded.getSortNo());
+    }
+
+    @Test
+    @DisplayName("删除模板字段：查不到")
+    void deleteTemplate_removes() {
+        RecordTemplate t = new RecordTemplate();
+        t.setFieldKey("dept");
+        t.setFieldLabel("科室");
+        masterDataService.createTemplate(t);
+        masterDataService.deleteTemplate(t.getId());
+        assertNull(templateMapper.selectById(t.getId()), "删除后模板字段应不存在");
     }
 
     private Balance newBalance(String code, String w1, String w2, String w3) {

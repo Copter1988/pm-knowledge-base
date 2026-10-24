@@ -72,8 +72,46 @@
                 <td th:text="${b.boxNo}"></td>
                 <td th:text="${b.remark ?: '-'}"></td>
                 <td>
+                    <a class="btn" th:href="@{/admin/masterdata/weightbox/edit(id=${b.id})}">编辑</a>
                     <form th:action="@{/admin/masterdata/weightbox/delete}" method="post" style="display:inline">
                         <input type="hidden" name="id" th:value="${b.id}">
+                        <button class="btn" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h3>记录模板维护</h3>
+        <form class="form-grid" th:action="@{/admin/masterdata/template/add}" method="post">
+            <label>字段键</label>
+            <input type="text" name="fieldKey" placeholder="例如 remark" required>
+            <label>显示名</label>
+            <input type="text" name="fieldLabel" placeholder="例如 备注" required>
+            <label>排序号</label>
+            <input type="text" name="sortNo" placeholder="数字，可选">
+            <div></div>
+            <button class="btn" type="submit">新增模板字段</button>
+        </form>
+        <table class="grid">
+            <thead>
+            <tr><th>字段键</th><th>显示名</th><th>显隐</th><th>必填</th><th>排序</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${templates}">
+                <td th:text="${t.fieldKey}"></td>
+                <td th:text="${t.fieldLabel}"></td>
+                <td th:text="${t.visible == 1 ? '显示' : '隐藏'}"></td>
+                <td th:text="${t.required == 1 ? '必填' : '非必填'}"></td>
+                <td th:text="${t.sortNo}"></td>
+                <td>
+                    <a class="btn" th:href="@{/admin/masterdata/template/edit(id=${t.id})}">编辑</a>
+                    <form th:action="@{/admin/masterdata/template/toggle-visible}" method="post" style="display:inline">
+                        <input type="hidden" name="id" th:value="${t.id}">
+                        <button class="btn" type="submit" th:text="${t.visible == 1 ? '隐藏' : '显示'}"></button>
+                    </form>
+                    <form th:action="@{/admin/masterdata/template/delete}" method="post" style="display:inline">
+                        <input type="hidden" name="id" th:value="${t.id}">
                         <button class="btn" type="submit">删除</button>
                     </form>
                 </td>

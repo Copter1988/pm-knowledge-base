@@ -26,7 +26,16 @@
                 </tr>
             </table>
         </div>
-        <p class="placeholder" th:if="${curve == null && error == null}">请从记录查询页选择一个记录查看曲线。</p>
+        <form th:if="${curve == null && error == null}" method="get"
+              th:action="${session.loginUser.role == 'REVIEWER' ? '/reviewer/curve' : '/checker/curve'}">
+            <select name="recordId" required>
+                <option value="">请选择已复核记录</option>
+                <option th:each="r : ${records}" th:value="${r.id}"
+                        th:text="${r.recordNo + ' · ' + (r.balanceCode ?: '-') + ' · ' + (r.checkerName ?: '-')}"></option>
+            </select>
+            <button class="btn" type="submit">查看曲线</button>
+        </form>
+        <p class="placeholder" th:if="${curve == null && error == null && #lists.isEmpty(records)}">暂无已复核记录，请先完成记录复核。</p>
     </div>
 </div>
 </body>

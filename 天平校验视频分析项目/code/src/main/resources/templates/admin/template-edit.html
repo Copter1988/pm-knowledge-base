@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('编辑模板字段')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>编辑模板字段</h2>
+        <form class="form-grid" th:action="@{/admin/masterdata/template/edit}" method="post">
+            <input type="hidden" name="id" th:value="${template.id}">
+            <label>字段键</label>
+            <input type="text" th:value="${template.fieldKey}" disabled>
+            <label>显示名</label>
+            <input type="text" name="fieldLabel" th:value="${template.fieldLabel}" required>
+            <label>必填</label>
+            <select name="required">
+                <option value="0" th:selected="${template.required != 1}">非必填</option>
+                <option value="1" th:selected="${template.required == 1}">必填</option>
+            </select>
+            <label>排序号</label>
+            <input type="text" name="sortNo" th:value="${template.sortNo}" placeholder="数字">
+            <div></div>
+            <button class="btn" type="submit">保存</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
