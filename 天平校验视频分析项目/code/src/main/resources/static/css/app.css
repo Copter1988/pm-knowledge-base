@@ -1,34 +1,378 @@
-body { font-family: "Microsoft YaHei", sans-serif; margin: 0; background: #f5f7fb; color: #26303f; }
-.topbar { background: #14315c; color: #fff; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
-.topbar .brand { font-weight: 700; font-size: 16px; color: #fff; }
-.topbar a { color: #c3d3ea; text-decoration: none; margin-left: 16px; font-size: 13px; }
-.topbar a:hover { color: #fff; }
-.container { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
-.card { background: #fff; border: 1px solid #e3e8f0; border-radius: 9px; padding: 24px; margin-bottom: 16px; }
-.card h2 { color: #14315c; margin-top: 0; }
-.btn { display: inline-block; background: #1b4f91; color: #fff; padding: 9px 22px; border-radius: 6px; text-decoration: none; border: none; cursor: pointer; font-size: 14px; }
-.btn:hover { background: #164180; }
-.btn-block { width: 100%; font-size: 15px; }
-.placeholder { color: #94a3b8; }
-.login-box { max-width: 360px; margin: 100px auto; background: #fff; border: 1px solid #e3e8f0; border-radius: 12px; padding: 32px; }
-.login-box h2 { color: #14315c; margin-top: 0; }
-input[type=text], input[type=password] { width: 100%; padding: 10px; margin: 8px 0 16px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-select, textarea, input[type=date], input[type=file] { padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+/* ============================================================
+   天平校验视频分析系统 · 全局样式
+   企业蓝主题（深蓝导航 + 中性灰背景 + 蓝色主操作）
+   仅样式，不含任何功能逻辑。
+   ============================================================ */
+
+:root {
+    --navy: #14315c;            /* 顶栏 / 标题深蓝 */
+    --primary: #1b4f91;         /* 主操作色 */
+    --primary-hover: #164180;
+    --accent: #3b82f6;          /* 强调蓝 */
+    --bg: #f5f7fb;              /* 页面背景 */
+    --surface: #ffffff;         /* 卡片表面 */
+    --border: #e3e8f0;          /* 边框 */
+    --border-strong: #cbd5e1;
+    --text: #26303f;            /* 主文字 */
+    --text-secondary: #43536e;  /* 次要文字 */
+    --muted: #7c8aa0;           /* 弱化文字 */
+    --danger: #c0392b;
+    --shadow-sm: 0 1px 2px rgba(20, 49, 92, 0.06);
+    --shadow-md: 0 4px 14px rgba(20, 49, 92, 0.10);
+    --radius: 9px;
+    --radius-lg: 12px;
+    --transition: 160ms ease;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", system-ui, -apple-system, sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 顶部导航 ---------- */
+.topbar {
+    background: var(--navy);
+    color: #fff;
+    padding: 12px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(20, 49, 92, 0.25);
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+.topbar .brand {
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.brand-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+.nav-links { display: flex; align-items: center; }
+.user-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+.user-meta {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+.user-name { font-size: 13px; font-weight: 600; }
+.user-role { font-size: 11px; color: #c3d3ea; }
+.logout {
+    color: #c3d3ea;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: color var(--transition), background-color var(--transition);
+}
+.logout:hover { color: #fff; background: rgba(255, 255, 255, 0.10); }
+.topbar a {
+    color: #c3d3ea;
+    text-decoration: none;
+    margin-left: 16px;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: color var(--transition), background-color var(--transition);
+}
+.topbar a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.10);
+}
+.topbar a:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+/* ---------- 容器与卡片 ---------- */
+.container {
+    max-width: 1200px;
+    margin: 28px auto;
+    padding: 0 24px;
+}
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-sm);
+}
+.card h2 {
+    color: var(--navy);
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 20px;
+    font-weight: 700;
+}
+.card h3 {
+    color: var(--navy);
+    margin: 20px 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ---------- 按钮 ---------- */
+.btn {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    padding: 9px 22px;
+    border-radius: 6px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: background-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+.btn:hover { background: var(--primary-hover); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.btn-block { width: 100%; font-size: 15px; padding: 11px; }
+
+/* ---------- 表单 ---------- */
+input[type=text], input[type=password], input[type=number],
+select, textarea, input[type=date] {
+    font-family: inherit;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--text);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+input[type=text]:focus, input[type=password]:focus, input[type=number]:focus,
+select:focus, textarea:focus, input[type=date]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+input[type=text], input[type=password], input[type=number] {
+    width: 100%;
+}
+select, textarea, input[type=date], input[type=file] { box-sizing: border-box; }
 textarea { width: 100%; resize: vertical; }
-.error { color: #c0392b; font-size: 13px; }
-table.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.grid th, table.grid td { border: 1px solid #e3e8f0; padding: 8px 12px; text-align: left; }
-table.grid th { background: #f5f7fb; color: #43536e; }
-.muted { color: #94a3b8; font-size: 12px; }
-.notice { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 14px; color: #334155; font-size: 13px; }
-.form-grid { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 12px 18px; align-items: center; }
-.form-grid input[type=text], .form-grid select, .form-grid input[type=file], .form-grid textarea { margin: 0; width: 100%; }
-.form-grid label { color: #43536e; font-size: 13px; font-weight: 600; }
-.query-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
-.pager { margin-top: 16px; display: flex; gap: 16px; align-items: center; }
-.badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+input[type=file] {
+    padding: 9px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    background: #fafbfd;
+}
+input[type=file]:hover { border-color: var(--accent); }
+
+/* 单选 / 复选加大点击区 */
+input[type=radio], input[type=checkbox] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+    vertical-align: -3px;
+    margin-right: 4px;
+    cursor: pointer;
+}
+
+/* ---------- 表格 ---------- */
+table.grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: #fff;
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+table.grid th, table.grid td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: middle;
+}
+table.grid th {
+    background: #eef2f7;
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+table.grid tbody tr { transition: background-color var(--transition); }
+table.grid tbody tr:hover { background: #f6f9fd; }
+table.grid td .btn { padding: 6px 14px; font-size: 13px; }
+
+/* ---------- 徽标 / 提示 ---------- */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
 .badge.info { background: #dbeafe; color: #1d4ed8; }
-.badge.ok { background: #dcfce7; color: #166534; }
-.badge.bad { background: #fee2e2; color: #991b1b; }
-.video { width: 100%; max-height: 420px; margin: 18px 0; background: #0f172a; border-radius: 8px; }
-.curve-image { width: 100%; max-width: 1000px; display: block; margin: 18px 0; border: 1px solid #e3e8f0; }
+.badge.ok   { background: #dcfce7; color: #166534; }
+.badge.bad  { background: #fee2e2; color: #991b1b; }
+
+.placeholder { color: var(--muted); }
+.muted { color: var(--muted); font-size: 12px; }
+.error { color: var(--danger); font-size: 13px; }
+.notice {
+    background: #eff6ff;
+    border-left: 4px solid var(--accent);
+    padding: 12px 14px;
+    color: #334155;
+    font-size: 13px;
+    border-radius: 0 6px 6px 0;
+    margin: 12px 0;
+}
+
+/* ---------- 表单网格 / 查询 / 分页 ---------- */
+.form-grid {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 12px 18px;
+    align-items: center;
+}
+.form-grid input[type=text], .form-grid input[type=number],
+.form-grid select, .form-grid input[type=file], .form-grid textarea {
+    margin: 0;
+    width: 100%;
+}
+.form-grid label {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+.query-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+.query-form select, .query-form input[type=text], .query-form input[type=date] {
+    width: auto;
+}
+.pager {
+    margin-top: 18px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+}
+.pager a {
+    color: var(--primary);
+    text-decoration: none;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: background-color var(--transition), border-color var(--transition);
+}
+.pager a:hover { background: #eef2f7; border-color: var(--border-strong); }
+
+/* ---------- 登录页 ---------- */
+.login-box {
+    max-width: 380px;
+    margin: 90px auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    box-shadow: var(--shadow-md);
+}
+.login-brand {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 14px;
+    border-radius: 12px;
+    background: var(--navy);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-brand svg { width: 26px; height: 26px; }
+.login-box h2 {
+    color: var(--navy);
+    margin: 0 0 6px;
+    font-size: 22px;
+    text-align: center;
+}
+.login-box .placeholder { margin-bottom: 22px; text-align: center; }
+
+/* ---------- 媒体 / 曲线 ---------- */
+.video {
+    width: 100%;
+    max-height: 420px;
+    margin: 18px 0;
+    background: #0f172a;
+    border-radius: 8px;
+}
+.curve-image {
+    width: 100%;
+    max-width: 1000px;
+    display: block;
+    margin: 18px 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 768px) {
+    .topbar { flex-wrap: wrap; padding: 10px 16px; }
+    .topbar a { margin-left: 8px; }
+    .container { padding: 0 14px; margin: 18px auto; }
+    .card { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; gap: 8px; }
+    .form-grid label { margin-top: 6px; }
+    table.grid { font-size: 12px; }
+    table.grid th, table.grid td { padding: 8px; }
+    .login-box { margin: 40px 14px; padding: 24px; }
+    .query-form { flex-direction: column; align-items: stretch; }
+    .query-form select, .query-form input { width: 100% !important; }
+}
+
+/* ---------- 可访问性：减少动效 ---------- */
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}

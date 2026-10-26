@@ -91,6 +91,30 @@ class AdminControllerTest {
         assertEquals("REVIEWER", updated.getRole());
     }
 
+    @Test
+    @DisplayName("编辑账号时修改密码：新密码可登录")
+    void editUser_changesPassword() throws Exception {
+        HttpSession admin = login("admin");
+        mvc.perform(post("/admin/users/add")
+                        .param("username", "passme")
+                        .param("realName", "密码测试")
+                        .param("role", "CHECKER")
+                        .session((org.springframework.mock.web.MockHttpSession) admin))
+                .andExpect(status().is3xxRedirection());
+        SysUser u = userMapper.selectOne(new QueryWrapper<SysUser>().eq("username", "passme"));
+
+        mvc.perform(post("/admin/users/edit")
+                        .param("userId", String.valueOf(u.getId()))
+                        .param("realName", "密码测试")
+                        .param("role", "CHECKER")
+                        .param("newPassword", "abc12345")
+                        .session((org.springframework.mock.web.MockHttpSession) admin))
+                .andExpect(status().is3xxRedirection());
+
+        mvc.perform(post("/login").param("username", "passme").param("password", "abc12345"))
+                .andExpect(status().is3xxRedirection());
+    }
+
     private HttpSession login(String username) throws Exception {
         MvcResult login = mvc.perform(post("/login")
                         .param("username", username)

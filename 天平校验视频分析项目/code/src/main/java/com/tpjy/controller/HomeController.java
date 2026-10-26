@@ -18,8 +18,8 @@ public class HomeController {
             return "redirect:/admin/users";
         }
         if (Constants.Role.REVIEWER.equals(user.getRole())) {
-            return "redirect:/reviewer/pending";
+            return "redirect:/reviewer/review/pending";
         }
-        return "redirect:/checker/workbench";
+        return "redirect:/checker/record/list";
     }
 }

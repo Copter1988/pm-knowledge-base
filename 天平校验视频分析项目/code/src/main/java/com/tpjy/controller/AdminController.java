@@ -40,12 +40,16 @@ public class AdminController {
     public String edit(@RequestParam("userId") Long userId,
                        @RequestParam("realName") String realName,
                        @RequestParam("role") String role,
-                       @RequestParam(value = "cardCode", required = false) String cardCode) {
+                       @RequestParam(value = "cardCode", required = false) String cardCode,
+                       @RequestParam(value = "newPassword", required = false) String newPassword) {
         SysUser u = userMapper.selectById(userId);
         if (u != null) {
             u.setRealName(realName);
             u.setRole(role);
             u.setCardCode(cardCode);
+            if (newPassword != null && !newPassword.trim().isEmpty()) {
+                u.setPassword(passwordEncoder.encode(newPassword.trim()));
+            }
             userMapper.updateById(u);
         }
         return "redirect:/admin/users";

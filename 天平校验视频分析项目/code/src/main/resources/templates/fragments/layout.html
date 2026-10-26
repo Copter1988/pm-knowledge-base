@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${title}">天平校验系统</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
@@ -9,11 +10,21 @@
 
 <!-- 顶部导航（按角色显示菜单） -->
 <nav class="topbar" th:fragment="topbar">
-    <span class="brand">天平校验系统</span>
-    <div th:switch="${session.loginUser.role}">
+    <span class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="M7 21h10"/>
+            <path d="M12 3v18"/>
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+        </svg>
+        <span>天平校验系统</span>
+    </span>
+    <div class="nav-links" th:switch="${session.loginUser.role}">
         <span th:case="'CHECKER'">
             <a th:href="@{/checker/record/import}">新建校验</a>
             <a th:href="@{/checker/record/list}">我的校验记录</a>
+            <a th:href="@{/checker/records}">记录查询</a>
             <a th:href="@{/checker/curve}">称重值曲线</a>
         </span>
         <span th:case="'REVIEWER'">
@@ -25,9 +36,13 @@
             <a th:href="@{/admin/masterdata}">主数据维护</a>
         </span>
     </div>
-    <div>
-        <span th:text="${session.loginUser.realName} + ' · ' + ${session.loginUser.role}"></span>
-        <a th:href="@{/logout}">退出</a>
+    <div class="user-box">
+        <span class="avatar" th:text="${session.loginUser.realName != null ? #strings.substring(session.loginUser.realName, 0, 1) : '?'}">用</span>
+        <span class="user-meta">
+            <span class="user-name" th:text="${session.loginUser.realName}">姓名</span>
+            <span class="user-role" th:text="${session.loginUser.role}">角色</span>
+        </span>
+        <a class="logout" th:href="@{/logout}">退出</a>
     </div>
 </nav>
 
