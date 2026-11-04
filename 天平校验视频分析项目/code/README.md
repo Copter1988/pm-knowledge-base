@@ -74,9 +74,10 @@ code/
 - ✅ 甲 1.3.5：限度实时计算、9 次逐项判定、前置条件一票否决、1% 较大误差预填、单/双量程归组
 - ✅ 甲 1.3.6：按天平/日期查询、L1/L2/L3 三张趋势图、复核记录记录表式 PDF 导出
 - ✅ 甲 1.3.8：五类审计 + 登录日志、审计双落地、视频 7 天自动清理与删除留痕
-- 🟡 乙 1.3.3 / 1.3.4：记录提交、复核确认尚待实现；当前查询页只读取数据库中已有记录
-- 🟡 乙 1.3.1 / 1.3.7：登录骨架可用，账号增删、主数据/模板维护仍待实现
-- 🟡 迭代 3：3 段实拍视频已完成自动示值 OCR、抽帧、判定、趋势图与 PDF 数据验证；并发 ≤5、完整记录闭环和最终部署说明仍待补
+- ✅ 乙 1.3.3 / 1.3.4：记录落库、改值留痕、提交、作废、复核确认、打回、批量确认
+- ✅ 乙 1.3.1 / 1.3.7：账号维护、校验员卡号、天平/砝码盒/记录模板维护
+- ✅ 三视频系统测试：video1 身份提前阻断，video2/video3 走通记录→复核→查询/曲线/PDF
+- 🟡 交付准备：并发 ≤5、干净环境性能复测、备份恢复、最终 UAT 和部署演练仍待完成
 
 `LocalCardOcrService` 调用本地 RapidOCR，同时识别文字身份卡和天平屏显；`OcrService` 仍保留为可替换扩展点。
 数字示值只有在连续至少 3 个采样点、跨度至少 2 秒且不跳动时才采用；待机零值、负值和过渡闪动会被排除，候选再按 `L1×3 → L2×3 → L3×3` 的称量顺序归组。
@@ -95,6 +96,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\setup-local-ocr.ps1
 
 OCR 依赖位于被 Git 忽略的 `.ocr-venv/`，模型和识别都在本机运行，不上传视频。
 
+环境检查：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check-environment.ps1 `
+  -MavenCommand "C:\path\to\mvn.cmd"
+```
+
 ## 自动化验证
 
 ```powershell
@@ -102,11 +110,17 @@ mvn -s mvn-settings.xml test
 .\.ocr-venv\Scripts\python.exe .\scripts\test_local_ocr_worker.py
 ```
 
-2026-10-22 验证结果：Java **46 tests, 0 failures, 0 errors**；本地 OCR 解析/校验 **5 tests, OK**。
+2026-11-02 验证结果：Java **78 tests, 0 failures, 0 errors**；本地 OCR 解析/校验 **5 tests, OK**。
 测试使用 H2 内存数据库启动完整 Spring 上下文，并实际调用上传接口、ffmpeg、QR 识别、查询、曲线和 PDF 下载；不依赖本机 MySQL 密码。
 
 详细交接、接口边界和验收注意点见 `docs/甲模块交付说明.md`。
 成员乙继续开发请先看 `docs/给乙的继续开发清单.md`。
+乙模块审查与遗留项见 `docs/乙模块代码审查记录.md`。
+
+执行期环境与风险基线：
+
+- `../管理文档/配置管理/项目配置环境基线.md`
+- `../管理文档/风险管理/执行期风险登记册与Top5应对计划（2026-11-02）.md`
 
 数据库每日备份脚本：`scripts/backup-tpjy.ps1`（通过 `TPJY_DB_USER` / `TPJY_DB_PASSWORD` 提供凭据）。
 
