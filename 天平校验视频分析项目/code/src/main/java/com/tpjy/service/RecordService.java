@@ -22,6 +22,7 @@ import com.tpjy.mapper.ReadingMapper;
 import com.tpjy.mapper.VideoMapper;
 import com.tpjy.util.TpjyUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -77,12 +78,16 @@ public class RecordService {
      * @param remark         备注（为空时采用 JudgeResult 预填）
      * @param editedReadings 9 次最终示值（seq 1~9，含人工改值）
      */
+    @Transactional
     public CalibrationRecord createRecord(RecognitionResult result, StoredVideoInfo video,
                                           Long balanceId, LoginUser checker,
                                           boolean cleanOk, boolean levelOk, String calibOk,
                                           String remark, List<RecognizedReading> editedReadings) {
         if (result == null) {
             throw new BizException("缺少识别结果，请重新导入视频");
+        }
+        if (video == null) {
+            throw new BizException("缺少已落盘视频，请重新导入");
         }
         if (!result.canCreateRecord()) {
             throw new BizException(result.getBlockingMessage() != null
@@ -92,11 +97,21 @@ public class RecordService {
         if (balance == null) {
             throw new BizException("所选天平不存在");
         }
+        if (result.getEffectiveBalanceCode() != null
+                && !result.getEffectiveBalanceCode().trim().equalsIgnoreCase(balance.getBalanceCode())) {
+            throw new BizException("视频识别天平（" + result.getEffectiveBalanceCode()
+                    + "）与当前选择天平（" + balance.getBalanceCode() + "）不一致，请重新选择后导入");
+        }
 
         BigDecimal w1 = balance.getWeightL1();
         BigDecimal w2 = balance.getWeightL2();
         BigDecimal w3 = balance.getWeightL3();
         List<RecognizedReading> finalReadings = normalizeReadings(editedReadings);
+        for (RecognizedReading reading : finalReadings) {
+            if (reading.getValue() == null) {
+                throw new BizException("9 次示值不完整，请补齐第 " + reading.getSeq() + " 次后提交");
+            }
+        }
         JudgeResult judge = judgeService.judgeRecord(finalReadings, w1, w2, w3,
                 cleanOk, levelOk, calibOk);
 
@@ -179,6 +194,7 @@ public class RecordService {
     }
 
     /** 作废记录：保留在库、默认不展示、不记作废原因（原因只进审计）。 */
+    @Transactional
     public CalibrationRecord abandon(Long recordId, LoginUser checker, String reason) {
         CalibrationRecord record = recordMapper.selectById(recordId);
         if (record == null) {

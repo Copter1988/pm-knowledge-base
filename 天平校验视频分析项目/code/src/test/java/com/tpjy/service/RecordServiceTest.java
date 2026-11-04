@@ -121,6 +121,43 @@ class RecordServiceTest {
     }
 
     @Test
+    @DisplayName("视频识别天平与页面选择天平不一致时阻断落库")
+    void createRecord_blocksWhenSelectedBalanceDoesNotMatchVideo() {
+        Balance selected = balanceMapper.selectOne(new QueryWrapper<Balance>().eq("balance_code", "F001"));
+        SysUser checker = userMapper.selectOne(new QueryWrapper<SysUser>().eq("username", "liyi"));
+        RecognitionResult result = resultOf("李一", "F002", "2026-06-29 10:13");
+        StoredVideoInfo video = new StoredVideoInfo(new File("target/test-upload/video/fake.mp4"),
+                "upload/video/20260629/fake.mp4", "smoke.mp4", new Date());
+        long before = recordMapper.selectCount(null);
+
+        BizException error = assertThrows(BizException.class, () -> recordService.createRecord(
+                result, video, selected.getId(), loginUser(checker),
+                true, true, Constants.CALIB_YES, null, result.getReadings()));
+
+        assertTrue(error.getMessage().contains("不一致"));
+        assertEquals(before, recordMapper.selectCount(null), "天平不一致时不得落记录");
+    }
+
+    @Test
+    @DisplayName("9 次示值不完整时阻断落库")
+    void createRecord_blocksIncompleteReadings() {
+        Balance balance = balanceMapper.selectOne(new QueryWrapper<Balance>().eq("balance_code", "F001"));
+        SysUser checker = userMapper.selectOne(new QueryWrapper<SysUser>().eq("username", "liyi"));
+        RecognitionResult result = resultOf("李一", "F001", "2026-06-29 10:13");
+        List<RecognizedReading> incomplete = cloneReadings(result.getReadings());
+        incomplete.get(8).setValue(null);
+        StoredVideoInfo video = new StoredVideoInfo(new File("target/test-upload/video/fake.mp4"),
+                "upload/video/20260629/fake.mp4", "smoke.mp4", new Date());
+        long before = recordMapper.selectCount(null);
+
+        assertThrows(BizException.class, () -> recordService.createRecord(
+                result, video, balance.getId(), loginUser(checker),
+                true, true, Constants.CALIB_YES, null, incomplete));
+
+        assertEquals(before, recordMapper.selectCount(null), "示值不完整时不得落记录");
+    }
+
+    @Test
     @DisplayName("改值留痕：识别原值与确认值不一致时写 read_trace 并记 READ_CHANGE 审计")
     void createRecord_writesReadTraceOnChange() {
         Balance balance = balanceMapper.selectOne(new QueryWrapper<Balance>().eq("balance_code", "F001"));

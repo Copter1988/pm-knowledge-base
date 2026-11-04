@@ -7,6 +7,7 @@ import com.tpjy.dto.Operator;
 import com.tpjy.entity.CalibrationRecord;
 import com.tpjy.mapper.CalibrationRecordMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -28,6 +29,7 @@ public class ReviewService {
     }
 
     /** 确认：待复核→已复核，写复核人与时间，记审计。 */
+    @Transactional
     public CalibrationRecord confirm(Long recordId, LoginUser reviewer) {
         CalibrationRecord record = requirePending(recordId);
         record.setStatus(Constants.STATUS_REVIEWED);
@@ -39,6 +41,7 @@ public class ReviewService {
     }
 
     /** 打回：待复核→已打回。 */
+    @Transactional
     public CalibrationRecord reject(Long recordId, LoginUser reviewer, String reason) {
         CalibrationRecord record = requirePending(recordId);
         record.setStatus(Constants.STATUS_REJECTED);
@@ -50,6 +53,7 @@ public class ReviewService {
     }
 
     /** 批量确认：只处理待复核记录，跳过其它状态；返回实际确认条数。 */
+    @Transactional
     public int batchConfirm(List<Long> ids, LoginUser reviewer) {
         int count = 0;
         StringBuilder recordNos = new StringBuilder();
