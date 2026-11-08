@@ -88,7 +88,7 @@ class WebApplicationSmokeTest {
     @Test
     @DisplayName("真实 MP4 经上传接口完成 ffmpeg 抽帧、二维码识别和核对页渲染")
     void uploadAndRecognizeRenders() throws Exception {
-        assumeTrue(new File("E:/ffmpeg/bin/ffmpeg.exe").isFile(), "本机未安装 ffmpeg，跳过视频集成测试");
+        assumeTrue(new File("D:/ffmpeg/bin/ffmpeg.exe").isFile(), "本机未安装 ffmpeg，跳过视频集成测试");
         MvcResult login = mvc.perform(post("/login")
                         .param("username", "liyi")
                         .param("password", "123456"))
