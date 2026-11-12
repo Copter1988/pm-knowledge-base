@@ -6,7 +6,10 @@
 <div class="container">
     <div class="card">
         <h2>我的记录</h2>
-        <p class="placeholder" th:if="${#lists.isEmpty(records)}">暂无待复核/草稿记录。</p>
+        <div class="empty-state" th:if="${#lists.isEmpty(records)}">
+            <p>暂无待复核 / 草稿记录</p>
+            <a class="btn" th:href="@{/checker/record/import}">新建校验记录</a>
+        </div>
         <table class="grid" th:unless="${#lists.isEmpty(records)}">
             <thead>
             <tr><th>记录号</th><th>天平</th><th>状态</th><th>校验日期</th><th>操作</th></tr>

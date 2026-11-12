@@ -20,8 +20,10 @@
     <h2>天平校验系统</h2>
     <p class="placeholder">内网运行 · 电子天平日常校验记录</p>
     <form method="post" th:action="@{/login}">
-        <input type="text" name="username" placeholder="账号" required autofocus>
-        <input type="password" name="password" placeholder="密码" required>
+        <label class="sr-only" for="username">账号</label>
+        <input type="text" id="username" name="username" placeholder="账号" required autofocus>
+        <label class="sr-only" for="password">密码</label>
+        <input type="password" id="password" name="password" placeholder="密码" required>
         <p class="error" th:if="${error}" th:text="${error}"></p>
         <button class="btn btn-block" type="submit">登录</button>
     </form>

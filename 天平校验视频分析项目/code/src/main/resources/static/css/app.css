@@ -26,6 +26,19 @@
 
 * { box-sizing: border-box; }
 
+/* 视觉隐藏但屏幕阅读器可读（可访问性） */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -166,6 +179,11 @@ body {
 }
 .btn:hover { background: var(--primary-hover); }
 .btn:active { transform: translateY(1px); }
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
 .btn:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -254,6 +272,15 @@ table.grid td .btn { padding: 6px 14px; font-size: 13px; }
 .badge.bad  { background: #fee2e2; color: #991b1b; }
 
 .placeholder { color: var(--muted); }
+
+/* 空态（列表无数据时的友好提示） */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 13px;
+}
+.empty-state .btn { margin-top: 14px; }
 .muted { color: var(--muted); font-size: 12px; }
 .error { color: var(--danger); font-size: 13px; }
 .notice {
@@ -365,7 +392,7 @@ table.grid td .btn { padding: 6px 14px; font-size: 13px; }
     .card { padding: 16px; }
     .form-grid { grid-template-columns: 1fr; gap: 8px; }
     .form-grid label { margin-top: 6px; }
-    table.grid { font-size: 12px; }
+    table.grid { font-size: 12px; display: block; overflow-x: auto; white-space: nowrap; }
     table.grid th, table.grid td { padding: 8px; }
     .login-box { margin: 40px 14px; padding: 24px; }
     .query-form { flex-direction: column; align-items: stretch; }

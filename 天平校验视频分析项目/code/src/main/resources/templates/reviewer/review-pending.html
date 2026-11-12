@@ -6,7 +6,9 @@
 <div class="container">
     <div class="card">
         <h2>待复核确认</h2>
-        <p class="placeholder" th:if="${#lists.isEmpty(records)}">暂无待复核记录。</p>
+        <div class="empty-state" th:if="${#lists.isEmpty(records)}">
+            <p>暂无待复核记录</p>
+        </div>
         <table class="grid" th:unless="${#lists.isEmpty(records)}">
             <thead>
             <tr><th>选择</th><th>记录号</th><th>天平</th><th>检验人</th><th>校验日期</th><th>操作</th></tr>
