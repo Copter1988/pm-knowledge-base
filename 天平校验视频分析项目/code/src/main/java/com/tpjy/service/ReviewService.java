@@ -21,11 +21,11 @@ import java.util.List;
 public class ReviewService {
 
     private final CalibrationRecordMapper recordMapper;
-    private final AuditService auditService;
+    private final AuditTxService auditTxService;
 
-    public ReviewService(CalibrationRecordMapper recordMapper, AuditService auditService) {
+    public ReviewService(CalibrationRecordMapper recordMapper, AuditTxService auditTxService) {
         this.recordMapper = recordMapper;
-        this.auditService = auditService;
+        this.auditTxService = auditTxService;
     }
 
     /** 确认：待复核→已复核，写复核人与时间，记审计。 */
@@ -36,7 +36,7 @@ public class ReviewService {
         record.setReviewerId(reviewer == null ? null : reviewer.getUserId());
         record.setReviewedAt(new Date());
         recordMapper.updateById(record);
-        auditService.logReviewConfirm(operatorOf(reviewer), recordId, "确认");
+        auditTxService.logReviewConfirm(operatorOf(reviewer), recordId, "确认");
         return record;
     }
 
@@ -48,7 +48,7 @@ public class ReviewService {
         record.setReviewerId(reviewer == null ? null : reviewer.getUserId());
         record.setReviewedAt(new Date());
         recordMapper.updateById(record);
-        auditService.logReviewConfirm(operatorOf(reviewer), recordId, "打回");
+        auditTxService.logReviewConfirm(operatorOf(reviewer), recordId, "打回");
         return record;
     }
 
@@ -73,7 +73,7 @@ public class ReviewService {
             count++;
         }
         if (count > 0) {
-            auditService.logBatchConfirm(operatorOf(reviewer), count, recordNos.toString());
+            auditTxService.logBatchConfirm(operatorOf(reviewer), count, recordNos.toString());
         }
         return count;
     }

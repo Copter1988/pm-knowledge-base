@@ -1,5 +1,8 @@
 server:
   port: 8080
+  servlet:
+    session:
+      tracking-modes: cookie   # 只用 cookie 追踪会话，禁用 URL 重写（避免 /;jsessionid= 导致 404）
 
 spring:
   datasource:

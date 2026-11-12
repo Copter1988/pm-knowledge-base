@@ -50,19 +50,21 @@ public class RecordService {
     private final VideoMapper videoMapper;
     private final BalanceMapper balanceMapper;
     private final JudgeService judgeService;
-    private final AuditService auditService;
+    private final AuditTxService auditTxService;
+    /** 记录号「查最大+1」临界区锁（单实例并发保护）。 */
+    private final Object recordNoLock = new Object();
 
     public RecordService(CalibrationRecordMapper recordMapper, ReadingMapper readingMapper,
                          ReadTraceMapper traceMapper, VideoMapper videoMapper,
                          BalanceMapper balanceMapper, JudgeService judgeService,
-                         AuditService auditService) {
+                         AuditTxService auditTxService) {
         this.recordMapper = recordMapper;
         this.readingMapper = readingMapper;
         this.traceMapper = traceMapper;
         this.videoMapper = videoMapper;
         this.balanceMapper = balanceMapper;
         this.judgeService = judgeService;
-        this.auditService = auditService;
+        this.auditTxService = auditTxService;
     }
 
     /**
@@ -121,7 +123,6 @@ public class RecordService {
         }
 
         CalibrationRecord record = new CalibrationRecord();
-        record.setRecordNo(TpjyUtils.recordNo(checkDate, nextDailySeq(checkDate)));
         record.setBalanceId(balanceId);
         record.setCheckDate(checkDate);
         record.setCleanOk(cleanOk ? 1 : 0);
@@ -134,7 +135,11 @@ public class RecordService {
         record.setConfirmFlag(0);
         record.setSubmittedAt(new Date());
         record.setCreatedAt(new Date());
-        recordMapper.insert(record);
+        // 记录号「查最大+1」与插入放在临界区内，避免并发撞 uk_record_no
+        synchronized (recordNoLock) {
+            record.setRecordNo(TpjyUtils.recordNo(checkDate, nextDailySeq(checkDate)));
+            recordMapper.insert(record);
+        }
 
         // 视频（deleted_at 留空，由 VideoRetentionService 清理时写入）
         Video videoRow = new Video();
@@ -187,7 +192,7 @@ public class RecordService {
             trace.setChangedBy(checker == null ? null : checker.getUserId());
             trace.setChangedAt(new Date());
             traceMapper.insert(trace);
-            auditService.logReadChange(operator, record.getId(), r.getSeq(),
+            auditTxService.logReadChange(operator, record.getId(), r.getSeq(),
                     originalText, confirmedText);
         }
         return record;
@@ -205,7 +210,7 @@ public class RecordService {
         }
         record.setStatus(Constants.STATUS_VOID);
         recordMapper.updateById(record);
-        auditService.logAbandon(operatorOf(checker), recordId, reason);
+        auditTxService.logAbandon(operatorOf(checker), recordId, reason);
         return record;
     }
 
