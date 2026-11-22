@@ -33,7 +33,7 @@ TASKS = [
     Task("三视频系统测试", date(2026, 11, 18), date(2026, 11, 20),
          date(2026, 10, 24), date(2026, 10, 24), "done"),
     Task("最终验收 UAT", date(2026, 11, 20), date(2026, 11, 24),
-         date(2026, 11, 3), date(2026, 11, 6), "forecast"),
+         date(2026, 11, 3), date(2026, 11, 15), "done"),
     Task("部署与回滚演练", date(2026, 11, 24), date(2026, 11, 26),
          date(2026, 11, 9), date(2026, 11, 10), "forecast"),
     Task("文档与汇报视频", date(2026, 11, 26), date(2026, 11, 27),
@@ -48,7 +48,7 @@ FORECAST_COLOR = "#F59E0B"
 GRID_COLOR = "#E5E7EB"
 TEXT_COLOR = "#1F2937"
 MUTED_COLOR = "#64748B"
-TODAY = date(2026, 11, 4)
+TODAY = date(2026, 11, 15)
 
 
 def add_weekend_shading(ax: plt.Axes, start: date, end: date) -> None:
@@ -112,7 +112,7 @@ def main() -> None:
     ax.set_xlim(chart_start, chart_end)
 
     ax.axvline(TODAY, color="#DC2626", linewidth=1.8, linestyle="--", zorder=5)
-    ax.text(TODAY, len(TASKS) - 0.38, " 数据截止 11-04",
+    ax.text(TODAY, len(TASKS) - 0.38, " 数据截止 11-15",
             color="#B91C1C", fontsize=9.2, va="bottom", ha="left",
             bbox=dict(facecolor="white", edgecolor="none", alpha=0.9, pad=1.4))
 
@@ -120,10 +120,10 @@ def main() -> None:
         (date(2026, 10, 14), "M1"),
         (date(2026, 10, 19), "M2"),
         (date(2026, 10, 26), "M3"),
-        (date(2026, 11, 6), "M4"),
+        (date(2026, 11, 15), "M4"),
         (date(2026, 11, 10), "M5"),
         (date(2026, 11, 16), "M6"),
-        (date(2026, 12, 9), "M7"),
+        (date(2026, 11, 25), "M7"),
     ]
     for milestone_date, label in milestones:
         ax.scatter(milestone_date, len(TASKS) - 0.43, marker="D", s=42,
@@ -155,7 +155,7 @@ def main() -> None:
                  x=0.06, y=0.985, ha="left", fontsize=20, fontweight="bold",
                  color=TEXT_COLOR)
     fig.text(0.06, 0.932,
-             "截至 2026-11-04｜编码与三视频系统测试已完成｜78 Java tests + 5 OCR tests 全部通过",
+             "截至 2026-11-15｜编码、测试与最终验收已完成｜78 Java tests + 5 OCR tests 全部通过",
              fontsize=10.5, color=MUTED_COLOR, ha="left")
     fig.text(0.06, 0.018,
              "说明：计划条与对应实际/预测条上下排布；橙色斜纹表示尚未完成，日期以工作日计划为基准展示。",
@@ -163,7 +163,7 @@ def main() -> None:
 
     fig.subplots_adjust(left=0.19, right=0.89, top=0.855, bottom=0.08)
 
-    output = Path(__file__).resolve().parents[1] / "项目进度甘特图_计划与实际_2026-11-04.png"
+    output = Path(__file__).resolve().parents[1] / "项目进度甘特图_计划与实际_2026-11-15.png"
     fig.savefig(output, dpi=220, facecolor="white", bbox_inches="tight")
     plt.close(fig)
     print(output)
