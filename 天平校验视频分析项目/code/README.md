@@ -6,10 +6,10 @@
 
 ## 环境要求
 
-- JDK 8 及以上
+- JDK 17（编译目标 Java 8）
 - Maven 3.6+
 - MySQL 8.0（本地或内网）
-- ffmpeg（本项目默认路径 `E:/ffmpeg/bin/ffmpeg.exe`，可在 `application.yml` 修改）
+- ffmpeg（通过 `FFMPEG_PATH` 环境变量或自动发现，见 `application.yml`）
 - Python 3（用于本地文字卡与数字示值 OCR；未安装时只能人工补录）
 
 ## 快速开始
