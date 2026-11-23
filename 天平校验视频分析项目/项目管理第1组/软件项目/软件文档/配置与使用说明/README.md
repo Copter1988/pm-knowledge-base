@@ -1,0 +1,132 @@
+# 天平校验视频分析系统 · 代码工程
+
+课程项目（第 1 组）。当前分支已合并成员甲的 4 个编码模块：
+视频导入与视觉识别、校验判定引擎、记录查询/曲线/PDF、留痕与审计。
+技术栈：Spring Boot 2.7 + Thymeleaf + MyBatis-Plus + MySQL 8 + ZXing + ffmpeg + Flying Saucer + RapidOCR（本地文字卡与数字示值 OCR）。
+
+## 环境要求
+
+- JDK 17（编译目标 Java 8）
+- Maven 3.6+
+- MySQL 8.0（本地或内网）
+- ffmpeg（通过 `FFMPEG_PATH` 环境变量或自动发现，见 `application.yml`）
+- Python 3（用于本地文字卡与数字示值 OCR；未安装时只能人工补录）
+
+## 快速开始
+
+1. **提供数据库账号密码**：设置环境变量 `TPJY_DB_USER`、`TPJY_DB_PASSWORD`（未设置时回退为 `root` / `123456`）。
+2. **启动**（首次会自动建库 `tpjy` 并执行建表脚本、初始化演示数据）：
+
+   ```bash
+   mvn -s mvn-settings.xml spring-boot:run
+   ```
+
+3. **访问**：浏览器打开 `http://localhost:8080/login`
+
+## 演示账号（密码均为 123456）
+
+| 账号 | 姓名 | 角色 |
+|---|---|---|
+| admin | 管理员 | ADMIN |
+| liyi | 李一 | CHECKER（检验人员） |
+| lier | 李二 | CHECKER（检验人员） |
+| qiyi | 齐一 | REVIEWER（复核确认人员） |
+
+## 目录结构
+
+```
+code/
+├── pom.xml
+├── sql 已并入 src/main/resources/sql/schema.sql（启动自动执行）
+└── src/main/
+    ├── java/com/tpjy/
+    │   ├── TpjyApplication.java       # 启动类（@MapperScan）
+    │   ├── common/                    # Result / 异常 / 常量 / 登录态
+    │   ├── config/                    # 拦截器 / 配置 / 数据初始化
+    │   ├── entity/                    # 8 张现有实体（schema 共 9 张表）
+    │   ├── mapper/                    # MyBatis-Plus Mapper
+    │   ├── service/                   # 判定、识别、查询、曲线、PDF、审计
+    │   │   ├── frame/                 # ffmpeg 抽帧
+    │   │   ├── qr/                    # ZXing 二维码识别
+    │   │   ├── ocr/                   # OCR 预留接口 + Noop 实现
+    │   │   ├── audit/                 # 数据库/文件审计落地
+    │   │   └── video/                 # 视频落盘与 7 天保留
+    │   ├── cli/                       # 无界面识别与演示视频入口
+    │   └── controller/                # 登录、检验人员、复核人员控制器
+    └── resources/
+        ├── application.yml
+        ├── sql/schema.sql
+        ├── static/css/app.css
+        └── templates/                 # 登录、导入/核对、查询、曲线、PDF 模板
+```
+
+## 关键约定（编码前先定稿，见《代码落地实施方案》）
+
+- **二维码内容**：人员卡 `PERSON:姓名`、天平卡 `BALANCE:天平编号`
+- **记录号**：`JY + yyyyMMdd + "-" + 天平编号 + "-" + 当日3位流水`
+- **限度**：标称值 ± 0.05%，用 BigDecimal 实时计算，绝不引用写死值
+- **OCR**：RapidOCR 在本机识别文字卡与天平屏显；仅连续稳定的非零示值会自动预填，识别不足时保留人工补录兜底
+
+## 当前进度
+
+- ✅ 迭代 0：可运行骨架（登录 + 权限拦截 + 建表 + 演示数据）
+- ✅ 甲 1.3.2：视频上传/落盘、ffmpeg 抽帧、ZXing 二维码 + RapidOCR 文字身份卡识别、校验员实体卡与登录账号匹配、天平铭牌精度识别与数据库比对、自动查对、9 次稳定示值自动 OCR 预填、g/mg 原屏单位保留与换算、提示定位
+- ✅ 甲 1.3.5：限度实时计算、9 次逐项判定、前置条件一票否决、1% 较大误差预填、单/双量程归组
+- ✅ 甲 1.3.6：按天平/日期查询、L1/L2/L3 三张趋势图、复核记录记录表式 PDF 导出
+- ✅ 甲 1.3.8：五类审计 + 登录日志、审计双落地、视频 7 天自动清理与删除留痕
+- ✅ 乙 1.3.3 / 1.3.4：记录落库、改值留痕、提交、作废、复核确认、打回、批量确认
+- ✅ 乙 1.3.1 / 1.3.7：账号维护、校验员卡号、天平/砝码盒/记录模板维护
+- ✅ 三视频系统测试：video1 身份提前阻断，video2/video3 走通记录→复核→查询/曲线/PDF
+- 🟡 交付准备：并发 ≤5、干净环境性能复测、备份恢复、最终 UAT 和部署演练仍待完成
+
+`LocalCardOcrService` 调用本地 RapidOCR，同时识别文字身份卡和天平屏显；`OcrService` 仍保留为可替换扩展点。
+数字示值只有在连续至少 3 个采样点、跨度至少 2 秒且不跳动时才采用；待机零值、负值和过渡闪动会被排除，候选再按 `L1×3 → L2×3 → L3×3` 的称量顺序归组。
+导入页的 9 个示值输入框通常留空；仅在明确覆盖或 OCR 缺失时人工补录。
+演示账号默认绑定：`liyi/JY001`、`lier/JY002`、`qiyi/JY003`。视频中的校验员卡与当前登录账号不一致时触发 `CHECKER_MISMATCH`，在示值识别前立即阻断，并直接显示“视频检验员身份和登录身份不匹配，不予校验”。
+天平铭牌可完整识别双量程时，优先采用铭牌精度并与数据库比对；铭牌不可读或不完整时自动回退数据库主数据。当前不再生成“位数不符”提示。
+人工输入支持 `200.0008g` 或 `20000.8mg`：系统保留原屏数值/单位，换算为 g 后计算限度和判定。
+PDF 按记录表格式显示每次测量时间；趋势图为 L1/L2/L3 三个独立面板，纵轴默认放大到标称值 ±0.2%。
+当前 3 段实拍视频开头均包含天平卡和校验员卡。实测 video1 为 `F002 + JY002`，使用李一/JY001 登录时约 32 秒内提前阻断，不再继续示值识别；video2 为 `F001 + JY001`，正确匹配并自动预填 9/9，铭牌不可读时以数据库精度兜底；video3 为 `F002 + JY001`，正确匹配并识别 `g/mg` 混合显示。
+
+首次使用文字卡 OCR：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-local-ocr.ps1
+```
+
+OCR 依赖位于被 Git 忽略的 `.ocr-venv/`，模型和识别都在本机运行，不上传视频。
+
+环境检查：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check-environment.ps1 `
+  -MavenCommand "C:\path\to\mvn.cmd"
+```
+
+## 自动化验证
+
+```powershell
+mvn -s mvn-settings.xml test
+.\.ocr-venv\Scripts\python.exe .\scripts\test_local_ocr_worker.py
+```
+
+2026-11-02 验证结果：Java **78 tests, 0 failures, 0 errors**；本地 OCR 解析/校验 **5 tests, OK**。
+测试使用 H2 内存数据库启动完整 Spring 上下文，并实际调用上传接口、ffmpeg、QR 识别、查询、曲线和 PDF 下载；不依赖本机 MySQL 密码。
+
+详细交接、接口边界和验收注意点见 `docs/甲模块交付说明.md`。
+成员乙继续开发请先看 `docs/给乙的继续开发清单.md`。
+乙模块审查与遗留项见 `docs/乙模块代码审查记录.md`。
+
+执行期环境与风险基线：
+
+- `../管理文档/配置管理/项目配置环境基线.md`
+- `../管理文档/风险管理/执行期风险登记册与Top5应对计划（2026-11-02）.md`
+
+数据库每日备份脚本：`scripts/backup-tpjy.ps1`（通过 `TPJY_DB_USER` / `TPJY_DB_PASSWORD` 提供凭据）。
+
+## 打包部署
+
+```bash
+mvn -s mvn-settings.xml clean package
+java -jar target/tpjy-1.0.0.jar
+```

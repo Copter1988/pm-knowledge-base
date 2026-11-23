@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('待复核确认')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>待复核确认</h2>
+        <p class="notice">待复核列表已移至 <a th:href="@{/reviewer/review/pending}">复核确认页</a>。</p>
+    </div>
+</div>
+</body>
+</html>

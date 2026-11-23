@@ -1,0 +1,55 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      tracking-modes: cookie   # 只用 cookie 追踪会话，禁用 URL 重写（避免 /;jsessionid= 导致 404）
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # createDatabaseIfNotExist=true 会在首次连接时自动建库 tpjy
+    url: jdbc:mysql://localhost:3306/tpjy?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${TPJY_DB_USER:root}
+    password: ${TPJY_DB_PASSWORD:123456}
+    hikari:
+      initialization-fail-timeout: -1
+  sql:
+    init:
+      mode: always                 # 每次启动自动执行 schema.sql（幂等）
+      schema-locations: classpath:sql/schema.sql
+      encoding: UTF-8
+      continue-on-error: true
+  thymeleaf:
+    cache: false                   # 开发期关闭模板缓存
+  servlet:
+    multipart:
+      max-file-size: 500MB         # 视频较大，放开上传限制
+      max-request-size: 500MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+
+app:
+  video-dir: ./upload/video
+  frame-dir: ./upload/frame
+  frame-extractor: ffmpeg
+  ffmpeg-path: ${FFMPEG_PATH:ffmpeg}
+  frame-interval: 1
+  recognize-timeout-seconds: 120
+  video-keep-days: 7
+  limit-rate: "0.0005"
+  big-deviation-rate: "0.01"
+  pdf-font-path: /fonts/simhei.ttf
+  cli-output-dir: ./out
+  card-ocr-enabled: true
+  ocr-python-path: ./.ocr-venv/Scripts/python.exe
+  ocr-worker-path: ./scripts/local_ocr_worker.py
+  card-ocr-max-frames: 18
+  numeric-ocr-max-frames: 320
+  card-ocr-window-seconds: 75
+  card-ocr-timeout-seconds: 150

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('天平与模板维护')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: topbar}"></nav>
+<div class="container">
+    <div class="card">
+        <h2>天平与模板维护</h2>
+        <p class="notice">天平主数据维护已移至 <a th:href="@{/admin/masterdata}">这里</a>。</p>
+    </div>
+</div>
+</body>
+</html>
