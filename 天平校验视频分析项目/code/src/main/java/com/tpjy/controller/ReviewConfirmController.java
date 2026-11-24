@@ -3,12 +3,16 @@ package com.tpjy.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tpjy.common.Constants;
 import com.tpjy.common.LoginUser;
+import com.tpjy.dto.RecordDetail;
 import com.tpjy.entity.Balance;
 import com.tpjy.entity.CalibrationRecord;
 import com.tpjy.entity.SysUser;
+import com.tpjy.entity.Video;
 import com.tpjy.mapper.BalanceMapper;
 import com.tpjy.mapper.CalibrationRecordMapper;
 import com.tpjy.mapper.SysUserMapper;
+import com.tpjy.mapper.VideoMapper;
+import com.tpjy.service.QueryService;
 import com.tpjy.service.ReviewService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,6 +42,10 @@ public class ReviewConfirmController {
     private BalanceMapper balanceMapper;
     @Resource
     private SysUserMapper userMapper;
+    @Resource
+    private VideoMapper videoMapper;
+    @Resource
+    private QueryService queryService;
 
     @GetMapping("/pending")
     public String pending(Model model) {
@@ -50,6 +58,23 @@ public class ReviewConfirmController {
         }
         model.addAttribute("records", records);
         return "reviewer/review-pending";
+    }
+
+    @GetMapping("/detail")
+    public String detail(@RequestParam("recordId") Long recordId, Model model) {
+        RecordDetail detail = queryService.detail(recordId);
+        model.addAttribute("detail", detail);
+
+        Video video = videoMapper.selectOne(new QueryWrapper<Video>()
+                .eq("record_id", recordId)
+                .isNull("deleted_at")
+                .orderByDesc("uploaded_at")
+                .last("limit 1"));
+        if (video != null) {
+            model.addAttribute("videoUrl", videoUrl(video.getFilePath()));
+            model.addAttribute("videoName", video.getOriginalName());
+        }
+        return "reviewer/review-detail";
     }
 
     @PostMapping("/confirm")
@@ -91,5 +116,14 @@ public class ReviewConfirmController {
                 r.setCheckerName(u.getRealName());
             }
         }
+    }
+
+    private String videoUrl(String filePath) {
+        if (filePath == null || filePath.trim().isEmpty()) {
+            return null;
+        }
+        String normalized = filePath.replace('\\', '/');
+        int index = normalized.indexOf("upload/");
+        return "/" + (index >= 0 ? normalized.substring(index) : normalized);
     }
 }

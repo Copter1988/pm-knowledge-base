@@ -21,6 +21,7 @@
                 <td th:text="${r.checkerName ?: '-'}"></td>
                 <td th:text="${r.checkDate != null ? #dates.format(r.checkDate, 'yyyy-MM-dd HH:mm') : '-'}"></td>
                 <td>
+                    <a class="btn" th:href="@{/reviewer/review/detail(recordId=${r.id})}">查看详情</a>
                     <form th:action="@{/reviewer/review/confirm}" method="post" style="display:inline">
                         <input type="hidden" name="recordId" th:value="${r.id}">
                         <button class="btn" type="submit">确认</button>
