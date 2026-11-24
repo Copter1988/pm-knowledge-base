@@ -2,7 +2,9 @@ package com.tpjy.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tpjy.entity.Balance;
+import com.tpjy.entity.WeightBox;
 import com.tpjy.mapper.BalanceMapper;
+import com.tpjy.mapper.WeightBoxMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,8 @@ class MasterDataControllerTest {
     private MockMvc mvc;
     @Autowired
     private BalanceMapper balanceMapper;
+    @Autowired
+    private WeightBoxMapper weightBoxMapper;
 
     @Test
     @DisplayName("新增天平后列表可见")
@@ -111,6 +115,42 @@ class MasterDataControllerTest {
                 .andExpect(status().is3xxRedirection());
 
         assertEquals(0, new BigDecimal("500").compareTo(balanceMapper.selectById(b.getId()).getWeightL1()));
+    }
+
+    @Test
+    @DisplayName("新增天平时可关联砝码盒并在列表显示")
+    void addBalance_assignsWeightBox() throws Exception {
+        HttpSession admin = login("admin");
+        WeightBox box = new WeightBox();
+        box.setBoxNo("FM-LT-01");
+        box.setWeightL1(new BigDecimal("200"));
+        box.setWeightL2(new BigDecimal("50"));
+        box.setWeightL3(new BigDecimal("10"));
+        box.setRemark("天平关联测试");
+        weightBoxMapper.insert(box);
+
+        mvc.perform(post("/admin/masterdata/add")
+                        .param("balanceCode", "F103")
+                        .param("dept", "测试室")
+                        .param("uniqueNo", "U103")
+                        .param("range1", "220g")
+                        .param("range1Precision", "0.1mg")
+                        .param("weightBoxId", String.valueOf(box.getId()))
+                        .param("weightL1", "200")
+                        .param("weightL2", "50")
+                        .param("weightL3", "10")
+                        .session((org.springframework.mock.web.MockHttpSession) admin))
+                .andExpect(status().is3xxRedirection());
+
+        Balance loaded = balanceMapper.selectOne(new QueryWrapper<Balance>().eq("balance_code", "F103"));
+        assertEquals(box.getId(), loaded.getWeightBoxId());
+        mvc.perform(get("/admin/masterdata")
+                        .session((org.springframework.mock.web.MockHttpSession) admin))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("FM-LT-01")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("导入砝码重量")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("记录详情和PDF")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("要显示的信息")));
     }
 
     private HttpSession login(String username) throws Exception {

@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * 主数据维护测试（WBS 1.3.7，成员乙，切片 5）。
@@ -75,10 +76,17 @@ class MasterDataServiceTest {
     void createWeightBox_persists() {
         WeightBox box = new WeightBox();
         box.setBoxNo("FM2512999");
+        box.setWeightL1(new BigDecimal("200"));
+        box.setWeightL2(new BigDecimal("50"));
+        box.setWeightL3(new BigDecimal("10"));
         box.setRemark("测试盒");
         masterDataService.createWeightBox(box);
         assertNotNull(box.getId(), "新增后应回填主键");
-        assertEquals("FM2512999", weightBoxMapper.selectById(box.getId()).getBoxNo());
+        WeightBox loaded = weightBoxMapper.selectById(box.getId());
+        assertEquals("FM2512999", loaded.getBoxNo());
+        assertEquals(0, new BigDecimal("200").compareTo(loaded.getWeightL1()));
+        assertEquals(0, new BigDecimal("50").compareTo(loaded.getWeightL2()));
+        assertEquals(0, new BigDecimal("10").compareTo(loaded.getWeightL3()));
     }
 
     @Test
@@ -110,6 +118,22 @@ class MasterDataServiceTest {
     }
 
     @Test
+    @DisplayName("砝码盒被天平使用时禁止删除")
+    void deleteWeightBox_whenBound_isRejected() {
+        WeightBox box = new WeightBox();
+        box.setBoxNo("FPROT01");
+        masterDataService.createWeightBox(box);
+
+        Balance balance = newBalance("F096", "200", "50", "10");
+        balance.setWeightBoxId(box.getId());
+        masterDataService.createBalance(balance);
+
+        assertThrows(IllegalStateException.class,
+                () -> masterDataService.deleteWeightBox(box.getId()));
+        assertNotNull(weightBoxMapper.selectById(box.getId()));
+    }
+
+    @Test
     @DisplayName("新增模板字段：落库")
     void createTemplate_persists() {
         RecordTemplate t = new RecordTemplate();
@@ -127,7 +151,7 @@ class MasterDataServiceTest {
     @DisplayName("修改模板字段：显隐/顺序更新")
     void updateTemplate_updatesVisibility() {
         RecordTemplate t = new RecordTemplate();
-        t.setFieldKey("remark");
+        t.setFieldKey("test_field_a");
         t.setFieldLabel("备注");
         t.setVisible(1);
         masterDataService.createTemplate(t);

@@ -97,6 +97,18 @@
 
         <p><strong>备注：</strong><span th:text="${detail.remark ?: '无'}"></span></p>
 
+        <div th:if="${not #lists.isEmpty(detail.templateFields)}">
+            <h3>记录模板补充信息</h3>
+            <table class="grid">
+                <tr><th>字段</th><th>内容</th><th>要求</th></tr>
+                <tr th:each="field : ${detail.templateFields}">
+                    <td th:text="${field.fieldLabel}"></td>
+                    <td th:text="${field.value ?: '-'}"></td>
+                    <td th:text="${field.required ? '必填' : '选填'}"></td>
+                </tr>
+            </table>
+        </div>
+
         <div th:if="${videoUrl != null}">
             <h3>原始校验视频</h3>
             <p class="muted" th:text="${videoName ?: '校验视频'}"></p>

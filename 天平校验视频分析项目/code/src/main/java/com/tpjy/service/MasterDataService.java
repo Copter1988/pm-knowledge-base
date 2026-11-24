@@ -1,5 +1,6 @@
 package com.tpjy.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tpjy.entity.Balance;
 import com.tpjy.entity.RecordTemplate;
 import com.tpjy.entity.WeightBox;
@@ -65,7 +66,18 @@ public class MasterDataService {
     }
 
     public void deleteWeightBox(Long id) {
+        Long used = balanceMapper.selectCount(
+                new QueryWrapper<Balance>().eq("weight_box_id", id));
+        if (used != null && used > 0) {
+            throw new IllegalStateException("该砝码盒已被 " + used + " 台天平使用，请先解除关联");
+        }
         weightBoxMapper.deleteById(id);
+    }
+
+    public long countBalancesUsingWeightBox(Long id) {
+        Long count = balanceMapper.selectCount(
+                new QueryWrapper<Balance>().eq("weight_box_id", id));
+        return count == null ? 0 : count;
     }
 
     public List<WeightBox> listWeightBoxes() {

@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS sys_user (
 CREATE TABLE IF NOT EXISTS weight_box (
   id      BIGINT AUTO_INCREMENT PRIMARY KEY,
   box_no  VARCHAR(10) NOT NULL,
+  weight_L1 DECIMAL(12,4),
+  weight_L2 DECIMAL(12,4),
+  weight_L3 DECIMAL(12,4),
   remark  VARCHAR(200),
   UNIQUE KEY uk_box_no (box_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

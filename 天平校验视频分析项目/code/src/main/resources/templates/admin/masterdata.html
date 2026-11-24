@@ -6,6 +6,7 @@
 <div class="container">
     <div class="card">
         <h2>天平主数据维护</h2>
+        <p class="error" th:if="${error}" th:text="${error}"></p>
 
         <form class="form-grid" th:action="@{/admin/masterdata/add}" method="post">
             <label>天平编号</label>
@@ -22,19 +23,32 @@
             <input type="text" name="range2" placeholder="例如 41g">
             <label>第二量程精度（可选）</label>
             <input type="text" name="range2Precision" placeholder="例如 0.01mg">
+            <label>砝码盒（用于追溯）</label>
+            <div style="display:flex;gap:8px;align-items:center">
+                <select name="weightBoxId" id="addWeightBox" style="flex:1">
+                    <option value="">未关联</option>
+                    <option th:each="box : ${weightBoxes}" th:value="${box.id}"
+                            th:attr="data-l1=${box.weightL1},data-l2=${box.weightL2},data-l3=${box.weightL3}"
+                            th:text="${box.boxNo + (box.weightL1 != null ? ' · ' + box.weightL1 + '/' + box.weightL2 + '/' + box.weightL3 : '')}"></option>
+                </select>
+                <button class="btn" type="button"
+                        onclick="importWeightBox('addWeightBox','addWeightL1','addWeightL2','addWeightL3')">
+                    导入砝码重量
+                </button>
+            </div>
             <label>砝码 L1 (g)</label>
-            <input type="text" name="weightL1" required>
+            <input id="addWeightL1" type="text" name="weightL1" required>
             <label>砝码 L2 (g)</label>
-            <input type="text" name="weightL2" required>
+            <input id="addWeightL2" type="text" name="weightL2" required>
             <label>砝码 L3 (g)</label>
-            <input type="text" name="weightL3" required>
+            <input id="addWeightL3" type="text" name="weightL3" required>
             <div></div>
             <button class="btn" type="submit">新增天平</button>
         </form>
 
         <table class="grid">
             <thead>
-            <tr><th>编号</th><th>科室</th><th>量程</th><th>精度</th><th>L1/L2/L3 (g)</th><th>操作</th></tr>
+            <tr><th>编号</th><th>科室</th><th>量程</th><th>精度</th><th>砝码盒</th><th>L1/L2/L3 (g)</th><th>操作</th></tr>
             </thead>
             <tbody>
             <tr th:each="b : ${balances}">
@@ -42,6 +56,7 @@
                 <td th:text="${b.dept ?: '-'}"></td>
                 <td th:text="${b.range1 ?: '-'}"></td>
                 <td th:text="${b.range1Precision ?: '-'}"></td>
+                <td th:text="${b.weightBoxNo ?: '未关联'}"></td>
                 <td th:text="${b.weightL1} + ' / ' + ${b.weightL2} + ' / ' + ${b.weightL3}"></td>
                 <td>
                     <a class="btn" th:href="@{/admin/masterdata/edit(id=${b.id})}">编辑</a>
@@ -55,9 +70,16 @@
         </table>
 
         <h3>砝码盒维护</h3>
+        <p class="notice">砝码盒用于记录这台天平使用的一盒标准砝码。把砝码盒分配给天平后，复核详情和PDF会显示对应盒号，便于追溯设备配置。</p>
         <form class="form-grid" th:action="@{/admin/masterdata/weightbox/add}" method="post">
             <label>盒号</label>
             <input type="text" name="boxNo" required>
+            <label>L1 砝码重量 (g)</label>
+            <input type="text" name="weightL1" placeholder="例如 200">
+            <label>L2 砝码重量 (g)</label>
+            <input type="text" name="weightL2" placeholder="例如 50">
+            <label>L3 砝码重量 (g)</label>
+            <input type="text" name="weightL3" placeholder="例如 10">
             <label>备注</label>
             <input type="text" name="remark" placeholder="可选">
             <div></div>
@@ -65,12 +87,14 @@
         </form>
         <table class="grid">
             <thead>
-            <tr><th>盒号</th><th>备注</th><th>操作</th></tr>
+            <tr><th>盒号</th><th>L1/L2/L3 (g)</th><th>备注</th><th>已绑定天平</th><th>操作</th></tr>
             </thead>
             <tbody>
             <tr th:each="b : ${weightBoxes}">
                 <td th:text="${b.boxNo}"></td>
+                <td th:text="${b.weightL1 != null ? b.weightL1 + ' / ' + b.weightL2 + ' / ' + b.weightL3 : '未填写'}"></td>
                 <td th:text="${b.remark ?: '-'}"></td>
+                <td th:text="${weightBoxUsage.get(b.id) ?: 0} + ' 台'"></td>
                 <td>
                     <a class="btn" th:href="@{/admin/masterdata/weightbox/edit(id=${b.id})}">编辑</a>
                     <form th:action="@{/admin/masterdata/weightbox/delete}" method="post" style="display:inline">
@@ -83,23 +107,33 @@
         </table>
 
         <h3>记录模板维护</h3>
+        <div class="notice">
+            这里不是新增数据库字段，而是选择“记录详情和PDF中要额外显示的信息”。
+            字段类型决定读取什么数据，显示名决定用户看到的中文名称。
+        </div>
         <form class="form-grid" th:action="@{/admin/masterdata/template/add}" method="post">
-            <label>字段键</label>
-            <input type="text" name="fieldKey" placeholder="例如 remark" required>
+            <label>要显示的信息</label>
+            <select name="fieldKey" required>
+                <option value="">请选择字段用途</option>
+                <option th:each="choice : ${templateFieldChoices}" th:value="${choice.key}"
+                        th:text="${choice.value}"></option>
+            </select>
             <label>显示名</label>
-            <input type="text" name="fieldLabel" placeholder="例如 备注" required>
-            <label>排序号</label>
-            <input type="text" name="sortNo" placeholder="数字，可选">
+            <input type="text" name="fieldLabel" placeholder="例如 砝码盒编号" required>
+            <label>显示顺序</label>
+            <input type="text" name="sortNo" placeholder="数字越小越靠前">
             <div></div>
             <button class="btn" type="submit">新增模板字段</button>
         </form>
         <table class="grid">
             <thead>
-            <tr><th>字段键</th><th>显示名</th><th>显隐</th><th>必填</th><th>排序</th><th>操作</th></tr>
+            <tr><th>字段类型</th><th>实际用途</th><th>显示名</th><th>显隐</th><th>必填</th><th>排序</th><th>操作</th></tr>
             </thead>
             <tbody>
             <tr th:each="t : ${templates}">
                 <td th:text="${t.fieldKey}"></td>
+                <td th:text="${templateFieldChoices.get(t.fieldKey) ?: '未知字段，建议删除'}"
+                    th:classappend="${templateFieldChoices.containsKey(t.fieldKey)} ? '' : 'error'"></td>
                 <td th:text="${t.fieldLabel}"></td>
                 <td th:text="${t.visible == 1 ? '显示' : '隐藏'}"></td>
                 <td th:text="${t.required == 1 ? '必填' : '非必填'}"></td>
@@ -120,5 +154,25 @@
         </table>
     </div>
 </div>
+<script>
+    function importWeightBox(selectId, l1Id, l2Id, l3Id) {
+        var select = document.getElementById(selectId);
+        var option = select.options[select.selectedIndex];
+        if (!select.value) {
+            alert('请先选择砝码盒');
+            return;
+        }
+        var l1 = option.getAttribute('data-l1');
+        var l2 = option.getAttribute('data-l2');
+        var l3 = option.getAttribute('data-l3');
+        if (!l1 || !l2 || !l3) {
+            alert('该砝码盒尚未填写完整的 L1/L2/L3 重量');
+            return;
+        }
+        document.getElementById(l1Id).value = l1;
+        document.getElementById(l2Id).value = l2;
+        document.getElementById(l3Id).value = l3;
+    }
+</script>
 </body>
 </html>

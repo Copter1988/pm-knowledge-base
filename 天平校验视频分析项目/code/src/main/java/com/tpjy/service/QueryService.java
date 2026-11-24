@@ -7,16 +7,19 @@ import com.tpjy.dto.JudgeResult;
 import com.tpjy.dto.PageResult;
 import com.tpjy.dto.RecordDetail;
 import com.tpjy.dto.RecognizedReading;
+import com.tpjy.dto.TemplateFieldView;
 import com.tpjy.entity.Balance;
 import com.tpjy.entity.CalibrationRecord;
 import com.tpjy.entity.ReadTrace;
 import com.tpjy.entity.Reading;
+import com.tpjy.entity.RecordTemplate;
 import com.tpjy.entity.SysUser;
 import com.tpjy.entity.WeightBox;
 import com.tpjy.mapper.BalanceMapper;
 import com.tpjy.mapper.CalibrationRecordMapper;
 import com.tpjy.mapper.ReadTraceMapper;
 import com.tpjy.mapper.ReadingMapper;
+import com.tpjy.mapper.RecordTemplateMapper;
 import com.tpjy.mapper.SysUserMapper;
 import com.tpjy.mapper.WeightBoxMapper;
 import com.tpjy.util.TpjyUtils;
@@ -42,12 +45,14 @@ public class QueryService {
     private final BalanceMapper balanceMapper;
     private final SysUserMapper userMapper;
     private final WeightBoxMapper weightBoxMapper;
+    private final RecordTemplateMapper templateMapper;
     private final JudgeService judgeService;
     private final CurveBuilder curveBuilder = new CurveBuilder();
 
     public QueryService(CalibrationRecordMapper recordMapper, ReadingMapper readingMapper,
                         ReadTraceMapper traceMapper, BalanceMapper balanceMapper,
                         SysUserMapper userMapper, WeightBoxMapper weightBoxMapper,
+                        RecordTemplateMapper templateMapper,
                         JudgeService judgeService) {
         this.recordMapper = recordMapper;
         this.readingMapper = readingMapper;
@@ -55,6 +60,7 @@ public class QueryService {
         this.balanceMapper = balanceMapper;
         this.userMapper = userMapper;
         this.weightBoxMapper = weightBoxMapper;
+        this.templateMapper = templateMapper;
         this.judgeService = judgeService;
     }
 
@@ -153,7 +159,69 @@ public class QueryService {
         for (ReadTrace t : listTraces(recordId)) {
             d.getTraces().add(t.getOriginalValue() + " → " + t.getConfirmedValue());
         }
+        populateTemplateFields(d);
         return d;
+    }
+
+    private void populateTemplateFields(RecordDetail detail) {
+        List<RecordTemplate> templates = templateMapper.selectList(
+                new QueryWrapper<RecordTemplate>()
+                        .eq("visible", 1)
+                        .orderByAsc("sort_no")
+                        .orderByAsc("id"));
+        List<TemplateFieldView> fields = new ArrayList<TemplateFieldView>();
+        for (RecordTemplate template : templates) {
+            String value = templateValue(template.getFieldKey(), detail);
+            if (value != null) {
+                fields.add(new TemplateFieldView(template.getFieldKey(), template.getFieldLabel(),
+                        value, template.getRequired() != null && template.getRequired() == 1,
+                        template.getSortNo()));
+            }
+        }
+        detail.setTemplateFields(fields);
+    }
+
+    private String templateValue(String key, RecordDetail detail) {
+        if ("record_no".equals(key)) {
+            return nvl(detail.getRecordNo());
+        }
+        if ("balance_code".equals(key)) {
+            return nvl(detail.getBalanceCode());
+        }
+        if ("dept".equals(key)) {
+            return nvl(detail.getDept());
+        }
+        if ("unique_no".equals(key)) {
+            return nvl(detail.getUniqueNo());
+        }
+        if ("weight_box_no".equals(key)) {
+            return nvl(detail.getWeightBoxNo());
+        }
+        if ("range_text".equals(key)) {
+            return nvl(detail.getRangeText());
+        }
+        if ("precision_text".equals(key)) {
+            return nvl(detail.getPrecisionText());
+        }
+        if ("check_date".equals(key)) {
+            return nvl(detail.getCheckDate());
+        }
+        if ("checker_name".equals(key)) {
+            return nvl(detail.getCheckerName());
+        }
+        if ("reviewer_name".equals(key)) {
+            return nvl(detail.getReviewerName());
+        }
+        if ("status".equals(key)) {
+            return nvl(detail.getStatus());
+        }
+        if ("result".equals(key)) {
+            return detail.getJudge() == null ? "-" : nvl(detail.getJudge().getResultText());
+        }
+        if ("remark".equals(key)) {
+            return nvl(detail.getRemark());
+        }
+        return null;
     }
 
     /** 曲线数据（供查询页 ECharts）。 */

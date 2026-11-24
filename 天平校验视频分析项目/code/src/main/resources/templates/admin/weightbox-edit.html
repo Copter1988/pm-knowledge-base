@@ -10,6 +10,12 @@
             <input type="hidden" name="id" th:value="${box.id}">
             <label>盒号</label>
             <input type="text" name="boxNo" th:value="${box.boxNo}" required>
+            <label>L1 砝码重量 (g)</label>
+            <input type="text" name="weightL1" th:value="${box.weightL1}" placeholder="例如 200">
+            <label>L2 砝码重量 (g)</label>
+            <input type="text" name="weightL2" th:value="${box.weightL2}" placeholder="例如 50">
+            <label>L3 砝码重量 (g)</label>
+            <input type="text" name="weightL3" th:value="${box.weightL3}" placeholder="例如 10">
             <label>备注</label>
             <input type="text" name="remark" th:value="${box.remark}" placeholder="可选">
             <div></div>

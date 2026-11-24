@@ -1,10 +1,13 @@
 package com.tpjy.config;
 
 import com.tpjy.common.Constants;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tpjy.entity.Balance;
+import com.tpjy.entity.RecordTemplate;
 import com.tpjy.entity.SysUser;
 import com.tpjy.entity.WeightBox;
 import com.tpjy.mapper.BalanceMapper;
+import com.tpjy.mapper.RecordTemplateMapper;
 import com.tpjy.mapper.SysUserMapper;
 import com.tpjy.mapper.WeightBoxMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +35,8 @@ public class DataInitializer implements CommandLineRunner {
     @Resource
     private BalanceMapper balanceMapper;
     @Resource
+    private RecordTemplateMapper templateMapper;
+    @Resource
     private PasswordEncoder passwordEncoder;
     @Resource
     private JdbcTemplate jdbcTemplate;
@@ -39,9 +44,12 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         ensureUserCardCodeColumn();
+        ensureWeightBoxWeightColumns();
         backfillUserCardCodes();
         seedUsers();
         seedMasterData();
+        backfillWeightBoxWeights();
+        seedRecordTemplates();
     }
 
     /** 兼容已存在的旧库：CREATE TABLE IF NOT EXISTS 不会补充新列。 */
@@ -51,6 +59,22 @@ public class DataInitializer implements CommandLineRunner {
         } catch (DataAccessException e) {
             jdbcTemplate.execute("ALTER TABLE sys_user ADD COLUMN card_code VARCHAR(20) NULL");
             log.info("已为 sys_user 增加 card_code 列");
+        }
+    }
+
+    private void ensureWeightBoxWeightColumns() {
+        ensureDecimalColumn("weight_box", "weight_l1");
+        ensureDecimalColumn("weight_box", "weight_l2");
+        ensureDecimalColumn("weight_box", "weight_l3");
+    }
+
+    private void ensureDecimalColumn(String table, String column) {
+        try {
+            jdbcTemplate.execute("SELECT " + column + " FROM " + table + " WHERE 1 = 0");
+        } catch (DataAccessException e) {
+            jdbcTemplate.execute("ALTER TABLE " + table + " ADD COLUMN " + column
+                    + " DECIMAL(12,4) NULL");
+            log.info("已为 {} 增加 {} 列", table, column);
         }
     }
 
@@ -92,9 +116,15 @@ public class DataInitializer implements CommandLineRunner {
         if (weightBoxMapper.selectCount(null) == 0) {
             WeightBox b1 = new WeightBox();
             b1.setBoxNo("FM2512920");
+            b1.setWeightL1(new BigDecimal("200"));
+            b1.setWeightL2(new BigDecimal("50"));
+            b1.setWeightL3(new BigDecimal("10"));
             weightBoxMapper.insert(b1);
             WeightBox b2 = new WeightBox();
             b2.setBoxNo("FM2512921");
+            b2.setWeightL1(new BigDecimal("100"));
+            b2.setWeightL2(new BigDecimal("20"));
+            b2.setWeightL3(new BigDecimal("2"));
             weightBoxMapper.insert(b2);
         }
         if (balanceMapper.selectCount(null) > 0) {
@@ -133,5 +163,36 @@ public class DataInitializer implements CommandLineRunner {
         f2.setWeightL3(new BigDecimal("2"));
         balanceMapper.insert(f2);
         log.info("已初始化天平主数据：F001（单量程）、F002（双量程）");
+    }
+
+    private void backfillWeightBoxWeights() {
+        jdbcTemplate.update("UPDATE weight_box SET weight_l1 = ?, weight_l2 = ?, weight_l3 = ? "
+                        + "WHERE box_no = ? AND (weight_l1 IS NULL OR weight_l2 IS NULL OR weight_l3 IS NULL)",
+                new BigDecimal("200"), new BigDecimal("50"), new BigDecimal("10"), "FM2512920");
+        jdbcTemplate.update("UPDATE weight_box SET weight_l1 = ?, weight_l2 = ?, weight_l3 = ? "
+                        + "WHERE box_no = ? AND (weight_l1 IS NULL OR weight_l2 IS NULL OR weight_l3 IS NULL)",
+                new BigDecimal("100"), new BigDecimal("20"), new BigDecimal("2"), "FM2512921");
+    }
+
+    private void seedRecordTemplates() {
+        ensureTemplate("weight_box_no", "砝码盒编号", 10);
+        ensureTemplate("range_text", "天平量程与精度", 20);
+        ensureTemplate("checker_name", "检验人员", 30);
+        ensureTemplate("remark", "校验备注", 40);
+    }
+
+    private void ensureTemplate(String fieldKey, String fieldLabel, int sortNo) {
+        Long count = templateMapper.selectCount(
+                new QueryWrapper<RecordTemplate>().eq("field_key", fieldKey));
+        if (count != null && count > 0) {
+            return;
+        }
+        RecordTemplate template = new RecordTemplate();
+        template.setFieldKey(fieldKey);
+        template.setFieldLabel(fieldLabel);
+        template.setVisible(1);
+        template.setRequired(0);
+        template.setSortNo(sortNo);
+        templateMapper.insert(template);
     }
 }

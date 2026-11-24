@@ -22,16 +22,50 @@
             <input type="text" name="range2" th:value="${balance.range2}">
             <label>第二量程精度（可选）</label>
             <input type="text" name="range2Precision" th:value="${balance.range2Precision}">
+            <label>砝码盒（用于追溯）</label>
+            <div style="display:flex;gap:8px;align-items:center">
+                <select name="weightBoxId" id="editWeightBox" style="flex:1">
+                    <option value="">未关联</option>
+                    <option th:each="box : ${weightBoxes}" th:value="${box.id}"
+                            th:selected="${balance.weightBoxId != null && balance.weightBoxId == box.id}"
+                            th:attr="data-l1=${box.weightL1},data-l2=${box.weightL2},data-l3=${box.weightL3}"
+                            th:text="${box.boxNo + (box.weightL1 != null ? ' · ' + box.weightL1 + '/' + box.weightL2 + '/' + box.weightL3 : '')}"></option>
+                </select>
+                <button class="btn" type="button"
+                        onclick="importWeightBox('editWeightBox','editWeightL1','editWeightL2','editWeightL3')">
+                    导入砝码重量
+                </button>
+            </div>
             <label>砝码 L1 (g)</label>
-            <input type="text" name="weightL1" th:value="${balance.weightL1}" required>
+            <input id="editWeightL1" type="text" name="weightL1" th:value="${balance.weightL1}" required>
             <label>砝码 L2 (g)</label>
-            <input type="text" name="weightL2" th:value="${balance.weightL2}" required>
+            <input id="editWeightL2" type="text" name="weightL2" th:value="${balance.weightL2}" required>
             <label>砝码 L3 (g)</label>
-            <input type="text" name="weightL3" th:value="${balance.weightL3}" required>
+            <input id="editWeightL3" type="text" name="weightL3" th:value="${balance.weightL3}" required>
             <div></div>
             <button class="btn" type="submit">保存修改</button>
         </form>
     </div>
 </div>
+<script>
+    function importWeightBox(selectId, l1Id, l2Id, l3Id) {
+        var select = document.getElementById(selectId);
+        var option = select.options[select.selectedIndex];
+        if (!select.value) {
+            alert('请先选择砝码盒');
+            return;
+        }
+        var l1 = option.getAttribute('data-l1');
+        var l2 = option.getAttribute('data-l2');
+        var l3 = option.getAttribute('data-l3');
+        if (!l1 || !l2 || !l3) {
+            alert('该砝码盒尚未填写完整的 L1/L2/L3 重量');
+            return;
+        }
+        document.getElementById(l1Id).value = l1;
+        document.getElementById(l2Id).value = l2;
+        document.getElementById(l3Id).value = l3;
+    }
+</script>
 </body>
 </html>

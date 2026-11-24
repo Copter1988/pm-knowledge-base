@@ -38,6 +38,8 @@ public class RecordDetail {
     private CurveData curve;
     /** 识别值改动留痕（原值 → 确认值），用于详情页留痕区。 */
     private List<String> traces = new ArrayList<String>();
+    /** 管理员启用的记录模板补充字段。 */
+    private List<TemplateFieldView> templateFields = new ArrayList<TemplateFieldView>();
 
     public String getCleanText() {
         return yesNo(cleanOk);
@@ -220,5 +222,13 @@ public class RecordDetail {
 
     public void setTraces(List<String> traces) {
         this.traces = traces;
+    }
+
+    public List<TemplateFieldView> getTemplateFields() {
+        return templateFields;
+    }
+
+    public void setTemplateFields(List<TemplateFieldView> templateFields) {
+        this.templateFields = templateFields;
     }
 }

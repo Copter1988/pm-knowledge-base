@@ -6,6 +6,10 @@
 <div class="container">
     <div class="card">
         <h2>编辑模板字段</h2>
+        <div class="notice">
+            当前字段用途：<strong th:text="${fieldPurpose ?: '未知字段'}"></strong>。
+            “显示名”会出现在复核详情和PDF中，“显示顺序”控制它们的前后排列。
+        </div>
         <form class="form-grid" th:action="@{/admin/masterdata/template/edit}" method="post">
             <input type="hidden" name="id" th:value="${template.id}">
             <label>字段键</label>

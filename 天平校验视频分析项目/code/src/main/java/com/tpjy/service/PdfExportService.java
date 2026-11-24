@@ -3,6 +3,7 @@ package com.tpjy.service;
 import com.lowagie.text.pdf.BaseFont;
 import com.tpjy.dto.RecordDetail;
 import com.tpjy.dto.ReadingJudge;
+import com.tpjy.dto.TemplateFieldView;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
@@ -168,6 +169,16 @@ public class PdfExportService {
 
         sb.append("<div class=\"label\">备注（默认「无」；异常情况在此说明，如数值显示异常、无法稳定等）</div>");
         sb.append("<div class=\"remark\">").append(e(d.getRemark())).append("</div>");
+
+        if (d.getTemplateFields() != null && !d.getTemplateFields().isEmpty()) {
+            sb.append("<div class=\"sec\">记录模板补充信息</div>");
+            sb.append("<table><tr><th style=\"width:24%\">字段</th><th>内容</th></tr>");
+            for (TemplateFieldView field : d.getTemplateFields()) {
+                sb.append("<tr><td class=\"center\">").append(e(field.getFieldLabel())).append("</td>");
+                sb.append("<td>").append(e(field.getValue())).append("</td></tr>");
+            }
+            sb.append("</table>");
+        }
 
         if (d.getTraces() != null && !d.getTraces().isEmpty()) {
             sb.append("<div class=\"sec\">五、识别值改动留痕</div>");

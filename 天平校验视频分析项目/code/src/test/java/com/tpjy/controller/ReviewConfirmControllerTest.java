@@ -156,6 +156,8 @@ class ReviewConfirmControllerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("JY20261124-REVIEW-DETAIL-001")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("称量前置条件")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("九次称量值")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("记录模板补充信息")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("砝码盒编号")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("200.0006 g")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("复核详情测试")));
     }
